@@ -24,4 +24,9 @@ class MethodChannelDesktopUpdater extends DesktopUpdaterPlatform {
   Future<String?> sayHello() async {
     return await methodChannel.invokeMethod<String>('sayHello');
   }
+
+  @override
+  Future<String?> getExecutablePath() async {
+    return await methodChannel.invokeMethod<String>('getExecutablePath');
+  }
 }

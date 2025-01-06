@@ -10,6 +10,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cryptography_flutter_plus:
+    git:
+      url: https://github.com/MarlonJD/dart-cryptography
+      path: cryptography_flutter
+      ref: ca1dc44b9ddbb31649c39a364f0a9fdcb22999e2
+  cryptography_plus: ^2.7.0
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:
