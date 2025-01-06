@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'dart:async';
+import "dart:async";
 
-import 'package:flutter/services.dart';
-import 'package:desktop_updater/desktop_updater.dart';
+import "package:desktop_updater/desktop_updater.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _platformVersion = "Unknown";
   final _desktopUpdaterPlugin = DesktopUpdater();
 
   @override
@@ -33,9 +33,9 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion = await _desktopUpdaterPlugin.getPlatformVersion() ??
-          'Unknown platform version';
+          "Unknown platform version";
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      platformVersion = "Failed to get platform version.";
     }
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -53,37 +53,34 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text("Plugin example app"),
         ),
         body: Center(
           child: Column(
             children: [
-              Text('Running on: $_platformVersion\n'),
+              Text("Running on: $_platformVersion\n"),
               ElevatedButton(
-                onPressed: () {
-                  _desktopUpdaterPlugin.restartApp();
-                },
-                child: Text("Restart App"),
+                onPressed: _desktopUpdaterPlugin.restartApp,
+                child: const Text("Restart App"),
               ),
               ElevatedButton(
                 onPressed: () {
-                  _desktopUpdaterPlugin.sayHello().then((value) {
-                    print(value);
-                  });
+                  _desktopUpdaterPlugin.sayHello().then(print);
                 },
-                child: Text("Say Hello"),
+                child: const Text("Say Hello"),
               ),
               ElevatedButton(
                 onPressed: () async {
                   // timer
                   final time = DateTime.now().millisecondsSinceEpoch;
-                  compute(_generateFileHashes, RootIsolateToken.instance)
+                  await compute(_generateFileHashes, RootIsolateToken.instance)
                       .then((value) {
                     print(
-                        "Time: ${DateTime.now().millisecondsSinceEpoch - time}ms");
+                      "Time: ${DateTime.now().millisecondsSinceEpoch - time}ms",
+                    );
                   });
                 },
-                child: Text("Generate hashes"),
+                child: const Text("Generate hashes"),
               ),
             ],
           ),
