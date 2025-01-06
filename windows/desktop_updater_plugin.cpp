@@ -199,6 +199,18 @@ namespace desktop_updater
       RestartApp();
       result->Success();
     }
+    else if (method_call.method_name().compare("getExecutablePath") == 0)
+    {
+      wchar_t executable_path[MAX_PATH];
+      GetModuleFileNameW(NULL, executable_path, MAX_PATH);
+      
+      // Convert wchar_t to std::string (UTF-8)
+      int size_needed = WideCharToMultiByte(CP_UTF8, 0, executable_path, -1, NULL, 0, NULL, NULL);
+      std::string executablePathStr(size_needed, 0);
+      WideCharToMultiByte(CP_UTF8, 0, executable_path, -1, &executablePathStr[0], size_needed, NULL, NULL);
+      
+      result->Success(flutter::EncodableValue(executablePathStr));
+    }
     else
     {
       result->NotImplemented();

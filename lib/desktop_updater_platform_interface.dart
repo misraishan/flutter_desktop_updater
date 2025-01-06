@@ -34,4 +34,8 @@ abstract class DesktopUpdaterPlatform extends PlatformInterface {
   Future<String?> sayHello() {
     throw UnimplementedError('sayHello() has not been implemented.');
   }
+
+  Future<String?> getExecutablePath() {
+    throw UnimplementedError('getExecutablePath() has not been implemented.');
+  }
 }
