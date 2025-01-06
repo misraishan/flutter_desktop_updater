@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:desktop_updater/desktop_updater.dart';
+import 'package:desktop_updater/desktop_updater.dart'; 
 
 void main() {
   runApp(const MyApp());
