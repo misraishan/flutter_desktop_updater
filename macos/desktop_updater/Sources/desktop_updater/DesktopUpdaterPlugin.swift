@@ -18,7 +18,11 @@ public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
             if FileManager.default.fileExists(atPath: backupPath) {
                 try FileManager.default.removeItem(atPath: backupPath)
             }
+            if FileManager.default.fileExists(atPath: newPath) {
+                try FileManager.default.removeItem(atPath: newPath)
+            }
             try FileManager.default.moveItem(atPath: currentPath, toPath: backupPath)
+            try FileManager.default.copyItem(atPath: backupPath, toPath: newPath)
             try FileManager.default.copyItem(atPath: newPath, toPath: currentPath)
             
             // Set execute permissions
