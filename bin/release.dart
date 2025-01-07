@@ -85,7 +85,7 @@ Future<void> main(List<String> args) async {
   final appName = file.path.split(Platform.pathSeparator).last.split(".").first;
 
   final zipPath =
-      "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform-x64.zip";
+      "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform.zip";
 
   // Create zip file with zipPath
   final encoder = ZipFileEncoder()..create(zipPath);

@@ -1,6 +1,4 @@
-import "package:desktop_updater/src/file_hash.dart";
-
-import 'desktop_updater_platform_interface.dart';
+import "package:desktop_updater/desktop_updater_platform_interface.dart";
 
 class DesktopUpdater {
   Future<String?> getPlatformVersion() {
@@ -18,10 +16,6 @@ class DesktopUpdater {
 
   Future<String?> getExecutablePath() {
     return DesktopUpdaterPlatform.instance.getExecutablePath();
-  }
-
-  Future<String?> generateFileHashes() {
-    return genFileHashes();
   }
 
   Future<bool> verifyFileHash(String filePath, String expectedHash) {

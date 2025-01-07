@@ -1,15 +1,15 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import "dart:async";
+import "dart:convert";
+import "dart:io";
 
-import 'package:cryptography_plus/cryptography_plus.dart';
-import 'package:desktop_updater/desktop_updater_platform_interface.dart';
-import 'package:desktop_updater/src/app_archive.dart';
+import "package:cryptography_plus/cryptography_plus.dart";
+import "package:desktop_updater/desktop_updater.dart";
+import "package:desktop_updater/src/app_archive.dart";
 
 Future<String> getFileHash(File file) async {
   try {
     // Dosya içeriğini okuyun
-    List<int> fileBytes = await file.readAsBytes();
+    final List<int> fileBytes = await file.readAsBytes();
 
     // blake2s algoritmasıyla hash hesaplayın
 
@@ -25,7 +25,7 @@ Future<String> getFileHash(File file) async {
 
 Future<bool> verifyFileHash(File file, String expectedHash) async {
   // Dosyanın hash'ini al
-  String hash = await getFileHash(file);
+  final hash = await getFileHash(file);
 
   // Hash'ler eşleşiyorsa
   if (hash == expectedHash) {
@@ -37,14 +37,16 @@ Future<bool> verifyFileHash(File file, String expectedHash) async {
 
 // Dizin içindeki tüm dosyaların hash'lerini alıp bir dosyaya yazan fonksiyon
 Future<String?> genFileHashes({String? path}) async {
-  path ??= await DesktopUpdaterPlatform.instance.getExecutablePath();
+  path ??= await DesktopUpdater().getExecutablePath();
+
+  print("Generating file hashes for $path");
 
   // .exe'yi ve dosya adını sil sadece path'i getir
-  final directoryPath = path?.substring(
-      0, path.lastIndexOf(Platform.pathSeparator));
+  final directoryPath =
+      path?.substring(0, path.lastIndexOf(Platform.pathSeparator));
 
   if (directoryPath == null) {
-    throw Exception('Desktop Updater: Executable path is null');
+    throw Exception("Desktop Updater: Executable path is null");
   }
 
   final dir = Directory(directoryPath);
@@ -52,23 +54,27 @@ Future<String?> genFileHashes({String? path}) async {
   // Eğer belirtilen yol bir dizinse
   if (await dir.exists()) {
     // dir + output.txt dosyası oluşturulur
-    File outputFile = File('${dir.path}${Platform.pathSeparator}output.txt');
+    final outputFile = File("${dir.path}${Platform.pathSeparator}output.txt");
 
     // Çıktı dosyasını açıyoruz
-    IOSink sink = outputFile.openWrite();
+    final sink = outputFile.openWrite();
 
     // Dizin içindeki tüm dosyaları döngüyle okuyoruz
-    await for (var entity in dir.list(recursive: true, followLinks: false)) {
+    await for (final entity in dir.list(recursive: true, followLinks: false)) {
       if (entity is File) {
         // Dosyanın hash'ini al
-        String hash = await getFileHash(entity);
+        final hash = await getFileHash(entity);
 
         // Dosya yolunu düzenle, başındaki dizin yolu kırpılır
         final path = entity.path.substring(directoryPath.length + 1);
 
         // Dosya yolunu ve hash değerini yaz
         if (hash.isNotEmpty) {
-          final hashObj = FileHashModel(filePath: path, calculatedHash: hash, length: entity.lengthSync());
+          final hashObj = FileHashModel(
+            filePath: path,
+            calculatedHash: hash,
+            length: entity.lengthSync(),
+          );
           sink.writeln(hashObj.toJson());
         }
       }
@@ -78,6 +84,6 @@ Future<String?> genFileHashes({String? path}) async {
     await sink.close();
     return outputFile.path;
   } else {
-    throw Exception('Desktop Updater: Directory does not exist');
+    throw Exception("Desktop Updater: Directory does not exist");
   }
 }
