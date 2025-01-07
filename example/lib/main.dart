@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:desktop_updater/desktop_updater.dart";
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
@@ -69,30 +68,10 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text("Say Hello"),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  // timer
-                  final time = DateTime.now().millisecondsSinceEpoch;
-                  await compute(_generateFileHashes, RootIsolateToken.instance)
-                      .then((value) {
-                    print(
-                      "Time: ${DateTime.now().millisecondsSinceEpoch - time}ms",
-                    );
-                  });
-                },
-                child: const Text("Generate hashes"),
-              ),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-// Add this top-level function outside of any class
-Future<void> _generateFileHashes(dynamic token) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(token);
-  await DesktopUpdater().generateFileHashes();
-  return;
 }
