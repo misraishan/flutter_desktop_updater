@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:desktop_updater/desktop_updater_platform_interface.dart';
+import 'package:desktop_updater/src/app_archive.dart';
 
 Future<String> getFileHash(File file) async {
   try {
@@ -35,13 +36,12 @@ Future<bool> verifyFileHash(File file, String expectedHash) async {
 }
 
 // Dizin içindeki tüm dosyaların hash'lerini alıp bir dosyaya yazan fonksiyon
-Future<String?> genFileHashes() async {
-  final executablePath =
-      await DesktopUpdaterPlatform.instance.getExecutablePath();
+Future<String?> genFileHashes({String? path}) async {
+  path ??= await DesktopUpdaterPlatform.instance.getExecutablePath();
 
   // .exe'yi ve dosya adını sil sadece path'i getir
-  final directoryPath = executablePath?.substring(
-      0, executablePath.lastIndexOf(Platform.pathSeparator));
+  final directoryPath = path?.substring(
+      0, path.lastIndexOf(Platform.pathSeparator));
 
   if (directoryPath == null) {
     throw Exception('Desktop Updater: Executable path is null');
@@ -68,7 +68,8 @@ Future<String?> genFileHashes() async {
 
         // Dosya yolunu ve hash değerini yaz
         if (hash.isNotEmpty) {
-          sink.writeln('$path $hash');
+          final hashObj = FileHashModel(filePath: path, calculatedHash: hash, length: entity.lengthSync());
+          sink.writeln(hashObj.toJson());
         }
       }
     }

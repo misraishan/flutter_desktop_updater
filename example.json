@@ -1,0 +1,33 @@
+{
+    "appName": "My App",
+    "descriptipn": "This is my app descriptipn",
+    "items": [
+        {
+            "version": "1.0.0",
+            "shortVersion": 1,
+            "changes": [
+                {
+                    "type": "chore",
+                    "message": "Fix bug #1"
+                },
+                {
+                    "type": "feat",
+                    "message": "Add new feature #1"
+                },
+                {
+                    "message": "Add new feature #2"
+                }
+            ],
+            "date": "2020-01-01",
+            "mandatory": true,
+            "url": "https://example.com/download/1.0.0",
+            "platform": "windows",
+            "hashes": [
+                {
+                    "file/path": "af732fgq7d",
+                    "file/path/path": "af732fgq7d"
+                }
+            ]
+        }
+    ]
+}
