@@ -68,12 +68,11 @@ packages:
   cryptography_flutter_plus:
     dependency: transitive
     description:
-      path: cryptography_flutter
-      ref: ca1dc44b9ddbb31649c39a364f0a9fdcb22999e2
-      resolved-ref: ca1dc44b9ddbb31649c39a364f0a9fdcb22999e2
-      url: "https://github.com/MarlonJD/dart-cryptography"
-    source: git
-    version: "2.3.3"
+      name: cryptography_flutter_plus
+      sha256: "35a8c270aae0abaac7125a6b6b33c2b3daa0ea90d85320aa7d588b6dd6c2edc9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.4"
   cryptography_plus:
     dependency: transitive
     description:

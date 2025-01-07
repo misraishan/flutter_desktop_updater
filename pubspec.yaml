@@ -1,33 +1,28 @@
 name: desktop_updater
 description: "A new Flutter plugin project."
 version: 0.0.1
-homepage:
+homepage: null
 
 environment:
   sdk: ^3.6.0
   flutter: '>=3.3.0'
 
 dependencies:
+  archive: ^4.0.2
+  args: ^2.6.0
+  cryptography_flutter_plus: ^2.3.4
+  cryptography_plus: ^2.7.1
   flutter:
     sdk: flutter
-  cryptography_flutter_plus:
-    git:
-      url: https://github.com/MarlonJD/dart-cryptography
-      path: cryptography_flutter
-      ref: ca1dc44b9ddbb31649c39a364f0a9fdcb22999e2
-  cryptography_plus: ^2.7.0
   plugin_platform_interface: ^2.0.2
-  args: ^2.6.0
-  archive: ^4.0.2
 
 dev_dependencies:
+  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
 # The following section is specific to Flutter packages.
 flutter:
   # This section identifies this Flutter project as a plugin project.
@@ -48,7 +43,6 @@ flutter:
         pluginClass: DesktopUpdaterPlugin
       windows:
         pluginClass: DesktopUpdaterPluginCApi
-
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
@@ -59,7 +53,6 @@ flutter:
   #
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
-
   # To add custom fonts to your plugin package, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
