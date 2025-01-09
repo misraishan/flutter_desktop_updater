@@ -68,6 +68,17 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text("Say Hello"),
               ),
+              ElevatedButton(
+                onPressed: () {
+                  final startTime = DateTime.now();
+                  _desktopUpdaterPlugin.generateFileHashes().then(
+                    (value) {
+                      print("File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+                    },
+                  );
+                },
+                child: const Text("Get Executable Path"),
+              ),
             ],
           ),
         ),

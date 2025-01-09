@@ -50,6 +50,8 @@ public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
         case "restartApp":
             restartApp()
             result(nil)
+        case "getExecutablePath":
+            result(Bundle.main.executablePath)
         default:
             result(FlutterMethodNotImplemented)
         }

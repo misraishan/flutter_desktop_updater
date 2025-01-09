@@ -24,6 +24,11 @@ class MockDesktopUpdaterPlatform
   Future<String?> getExecutablePath() {
     return Future.value();
   }
+
+  @override
+  Future<void> generateFileHashes({String? path}) {
+    return Future.value();
+  }
 }
 
 void main() {

@@ -13,7 +13,7 @@ Future<String> getFileHash(File file) async {
 
     // blake2s algoritmasıyla hash hesaplayın
 
-    final hash = await Blake2s().hash(fileBytes);
+    final hash = await Blake2b().hash(fileBytes);
 
     // Hash'i utf-8 base64'e dönüştürün ve geri döndürün
     return base64.encode(hash.bytes);
@@ -39,9 +39,6 @@ Future<bool> verifyFileHash(File file, String expectedHash) async {
 Future<String?> genFileHashes({String? path}) async {
   path ??= await DesktopUpdater().getExecutablePath();
 
-  print("Generating file hashes for $path");
-
-  // .exe'yi ve dosya adını sil sadece path'i getir
   final directoryPath =
       path?.substring(0, path.lastIndexOf(Platform.pathSeparator));
 
@@ -49,12 +46,18 @@ Future<String?> genFileHashes({String? path}) async {
     throw Exception("Desktop Updater: Executable path is null");
   }
 
-  final dir = Directory(directoryPath);
+  var dir = Directory(directoryPath);
+  
+  if (Platform.isMacOS) {
+    dir = dir.parent;
+  }
+
+  print("Generating file hashes for ${dir.path}");
 
   // Eğer belirtilen yol bir dizinse
   if (await dir.exists()) {
     // dir + output.txt dosyası oluşturulur
-    final outputFile = File("${dir.path}${Platform.pathSeparator}output.txt");
+    final outputFile = File("${dir.path}${Platform.pathSeparator}hashes.json");
 
     // Çıktı dosyasını açıyoruz
     final sink = outputFile.openWrite();
@@ -65,17 +68,18 @@ Future<String?> genFileHashes({String? path}) async {
         // Dosyanın hash'ini al
         final hash = await getFileHash(entity);
 
-        // Dosya yolunu düzenle, başındaki dizin yolu kırpılır
-        final path = entity.path.substring(directoryPath.length + 1);
-
+        final foundPath = entity.path.substring(dir.path.length + 1);
+  
         // Dosya yolunu ve hash değerini yaz
         if (hash.isNotEmpty) {
           final hashObj = FileHashModel(
-            filePath: path,
+            filePath: foundPath,
             calculatedHash: hash,
             length: entity.lengthSync(),
           );
-          sink.writeln(hashObj.toJson());
+          // Stringify json
+          final jsonString = jsonEncode(hashObj.toJson());
+          sink.writeln(jsonString);
         }
       }
     }

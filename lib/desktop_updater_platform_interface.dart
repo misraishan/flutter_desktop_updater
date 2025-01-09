@@ -38,4 +38,8 @@ abstract class DesktopUpdaterPlatform extends PlatformInterface {
   Future<String?> getExecutablePath() {
     throw UnimplementedError('getExecutablePath() has not been implemented.');
   }
+
+  Future<void> generateFileHashes({String? path}) {
+    throw UnimplementedError('generateFileHashes() has not been implemented.');
+  }
 }
