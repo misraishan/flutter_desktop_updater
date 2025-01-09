@@ -18,6 +18,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = "Unknown";
   final _desktopUpdaterPlugin = DesktopUpdater();
+  String length = "";
+  String changedFiles = "";
+  String hashes = "";
 
   @override
   void initState() {
@@ -73,12 +76,68 @@ class _MyAppState extends State<MyApp> {
                   final startTime = DateTime.now();
                   _desktopUpdaterPlugin.generateFileHashes().then(
                     (value) {
-                      print("File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+                      print(
+                          "File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+                      print(value);
+                      setState(() {
+                        hashes = value ?? "";
+                      });
                     },
                   );
                 },
                 child: const Text("Get Executable Path"),
               ),
+              SelectableText("Hashes path:\n$hashes\n"),
+              ElevatedButton(
+                onPressed: () {
+                  final startTime = DateTime.now();
+                  setState(() {
+                    changedFiles = "";
+                    length = "";
+                  });
+
+                  _desktopUpdaterPlugin
+                      .verifyFileHash(
+                          "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updatervIckPX/hashes.json",
+                          "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updaterAlf5te/hashes.json",)
+                      .then(
+                    (value) {
+                      print(
+                          "File hashes verified in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+
+                      for (final file in value) {
+                        if (file != null) {
+                          print("${file.filePath} - ${file.length}b");
+
+                          setState(() {
+                            changedFiles += "${file.filePath} - ${file.length}b\n";
+                          });
+                        }
+                      }
+
+                      // Calculate total length of all files
+                      print(value.fold<int>(
+                        0,
+                        (previousValue, element) =>
+                            previousValue + element!.length,
+                      ));
+
+                      setState(() {
+                        length = value
+                            .fold<int>(
+                              0,
+                              (previousValue, element) =>
+                                  previousValue + element!.length,
+                            )
+                            .toString();
+                      });
+                    },
+                  );
+                },
+                child: const Text("Verify File Hash"),
+              ),
+              Text("Total length of changed files: $length\n"),
+              Text("Changed files:\n$changedFiles"),
             ],
           ),
         ),

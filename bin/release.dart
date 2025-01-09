@@ -33,6 +33,8 @@ Future<void> main(List<String> args) async {
 
   final buildName = buildRegExp.replaceAll('"', "").split("+").first.trim();
   final buildNumber = buildRegExp.replaceAll('"', "").split("+").last.trim();
+  final appNamePubspec =
+      RegExp(r"name: (.+)").firstMatch(pubspecContent)!.group(1);
 
   // Get flutter path
   final flutterPath = Platform.environment["FLUTTER_ROOT"];
@@ -44,6 +46,9 @@ Future<void> main(List<String> args) async {
   var flutterExecutable = "flutter";
   if (Platform.isWindows) {
     flutterExecutable += ".bat";
+  }
+  if (Platform.isLinux || Platform.isMacOS) {
+    flutterExecutable = "flutter";
   }
 
   final buildCommand = [
@@ -74,15 +79,23 @@ Future<void> main(List<String> args) async {
 
   print("Build completed");
 
+  late Directory buildDir;
+
   // Found executable file name in build folder
-  final buildDir = Directory(
-    "build${Platform.pathSeparator}$platform${Platform.pathSeparator}x64${Platform.pathSeparator}runner${Platform.pathSeparator}Release",
-  );
-  final files = await buildDir.list(recursive: true).toList();
-  final file = files.firstWhere((file) => file.path.endsWith(".exe"));
+  if (platform == "windows") {
+    buildDir = Directory(
+      "build${Platform.pathSeparator}$platform${Platform.pathSeparator}x64${Platform.pathSeparator}runner${Platform.pathSeparator}Release",
+    );
+  } else if (platform == "macos") {
+    buildDir = Directory(
+      "build/macos/Build/Products/Release/$appNamePubspec.app/Contents",
+    );
+  }
+
+  // final files = await buildDir.list(recursive: true).toList();
 
   // Get only last part of the path
-  final appName = file.path.split(Platform.pathSeparator).last.split(".").first;
+  final appName = appNamePubspec;
 
   final zipPath =
       "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform.zip";
@@ -90,7 +103,41 @@ Future<void> main(List<String> args) async {
   // Create zip file with zipPath
   final encoder = ZipFileEncoder()..create(zipPath);
 
-  await encoder.addDirectory(buildDir, includeDirName: false);
+  // // Zip every file in the buildDir directory
+  // // If path has directory strip buildDir.path then create directories in zip
+  // for (final file in files) {
+  //   if (file is File) {
+  //     final encoder2 = ZipFileEncoder()..create("${file.path}.zip", level: 9);
+  //     await encoder2.addFile(File(file.path));
+  //     await encoder2.close();
+  //   }
+  // }
+
+  // await encoder.addDirectory(
+  //   buildDir,
+  //   includeDirName: false,
+  //   filter: (entity, progress) {
+  //     // if entity.path is not .zip return ZipFileOperation.skip
+  //     if (!entity.path.endsWith(".zip")) {
+  //       return ZipFileOperation.skip;
+  //     } else {
+  //       return ZipFileOperation.include;
+  //     }
+  //   },
+  // );
+
+  // for (final file in files) {
+  //   if (file is File) {
+  //     // Remove .zip files
+  //     final zipFile = File("${file.path}.zip");
+  //     await zipFile.delete();
+  //   }
+  // }
+
+  await encoder.addDirectory(
+    buildDir,
+    includeDirName: false,
+  );
 
   await encoder.close();
 

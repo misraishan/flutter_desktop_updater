@@ -1,3 +1,4 @@
+import "package:desktop_updater/src/app_archive.dart";
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -28,5 +29,10 @@ class MethodChannelDesktopUpdater extends DesktopUpdaterPlatform {
   @override
   Future<String?> getExecutablePath() async {
     return await methodChannel.invokeMethod<String>('getExecutablePath');
+  }
+
+  @override
+  Future<List<FileHashModel?>> verifyFileHash(String oldHashFilePath, String newHashFilePath) async {
+    throw UnimplementedError('verifyFileHash() has not been implemented.');
   }
 }

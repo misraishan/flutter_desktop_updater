@@ -23,16 +23,45 @@ Future<String> getFileHash(File file) async {
   }
 }
 
-Future<bool> verifyFileHash(File file, String expectedHash) async {
-  // Dosyanın hash'ini al
-  final hash = await getFileHash(file);
-
-  // Hash'ler eşleşiyorsa
-  if (hash == expectedHash) {
-    return true;
-  } else {
-    return false;
+Future<List<FileHashModel?>> verifyFileHashes(String oldHashFilePath, String newHashFilePath) async {
+  if (oldHashFilePath == newHashFilePath) {
+    return [];
   }
+
+  final oldFile = File(oldHashFilePath);
+  final newFile = File(newHashFilePath);
+
+  if (!oldFile.existsSync() || !newFile.existsSync()) {
+    throw Exception("Desktop Updater: Hash files do not exist");
+  }
+
+  final oldString = await oldFile.readAsString();
+  final newString = await newFile.readAsString();
+
+  // Decode as List<FileHashModel?>
+  final oldHashes = (jsonDecode(oldString) as List<dynamic>).map<FileHashModel?>((e) => FileHashModel.fromJson(e as Map<String, dynamic>)).toList();
+  final newHashes = (jsonDecode(newString) as List<dynamic>).map<FileHashModel?>((e) => FileHashModel.fromJson(e as Map<String, dynamic>)).toList();
+
+  final changes = <FileHashModel?>[];
+
+  for (final newHash in newHashes) {
+    final oldHash = oldHashes.firstWhere(
+      (element) => element?.filePath == newHash?.filePath,
+      orElse: () => null,
+    );
+
+    if (oldHash == null || oldHash.calculatedHash != newHash?.calculatedHash) {
+      changes.add(
+        FileHashModel(
+          filePath: newHash?.filePath ?? "",
+          calculatedHash: newHash?.calculatedHash ?? "",
+          length: newHash?.length ?? 0,
+        ),
+      );
+    }
+  }
+
+  return changes;
 }
 
 // Dizin içindeki tüm dosyaların hash'lerini alıp bir dosyaya yazan fonksiyon
@@ -52,15 +81,20 @@ Future<String?> genFileHashes({String? path}) async {
     dir = dir.parent;
   }
 
-  print("Generating file hashes for ${dir.path}");
-
   // Eğer belirtilen yol bir dizinse
   if (await dir.exists()) {
-    // dir + output.txt dosyası oluşturulur
-    final outputFile = File("${dir.path}${Platform.pathSeparator}hashes.json");
+    // temp dizini oluşturulur
+    final tempDir = await Directory.systemTemp.createTemp("desktop_updater");
+
+    // temp dizinindeki dosyaları kopyala
+     // dir + output.txt dosyası oluşturulur
+    final outputFile = File("${tempDir.path}${Platform.pathSeparator}hashes.json");
 
     // Çıktı dosyasını açıyoruz
     final sink = outputFile.openWrite();
+
+    // ignore: prefer_final_locals
+    var hashList = <FileHashModel>[];
 
     // Dizin içindeki tüm dosyaları döngüyle okuyoruz
     await for (final entity in dir.list(recursive: true, followLinks: false)) {
@@ -77,12 +111,16 @@ Future<String?> genFileHashes({String? path}) async {
             calculatedHash: hash,
             length: entity.lengthSync(),
           );
-          // Stringify json
-          final jsonString = jsonEncode(hashObj.toJson());
-          sink.writeln(jsonString);
+          hashList.add(hashObj);
         }
       }
     }
+
+    // Dosya hash'lerini json formatına çevir
+    final jsonStr = jsonEncode(hashList);
+
+    // Çıktı dosyasına yaz
+    sink.write(jsonStr);
 
     // Çıktıyı kaydediyoruz
     await sink.close();

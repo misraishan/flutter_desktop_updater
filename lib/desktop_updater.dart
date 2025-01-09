@@ -1,4 +1,5 @@
 import "package:desktop_updater/desktop_updater_platform_interface.dart";
+import "package:desktop_updater/src/app_archive.dart";
 import "package:desktop_updater/src/file_hash.dart";
 
 class DesktopUpdater {
@@ -19,11 +20,12 @@ class DesktopUpdater {
     return DesktopUpdaterPlatform.instance.getExecutablePath();
   }
 
-  Future<bool> verifyFileHash(String filePath, String expectedHash) {
-    return verifyFileHash(filePath, expectedHash);
+  Future<List<FileHashModel?>> verifyFileHash(String oldHashFilePath, String newHashFilePath) {
+    return verifyFileHashes(oldHashFilePath, newHashFilePath);
   }
 
   Future<String?> generateFileHashes({String? path}) {
     return genFileHashes(path: path);
   }
+  
 }
