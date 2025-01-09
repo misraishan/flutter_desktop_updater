@@ -1,6 +1,7 @@
 import "package:desktop_updater/desktop_updater.dart";
 import "package:desktop_updater/desktop_updater_method_channel.dart";
 import "package:desktop_updater/desktop_updater_platform_interface.dart";
+import "package:desktop_updater/src/app_archive.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:plugin_platform_interface/plugin_platform_interface.dart";
 
@@ -28,6 +29,11 @@ class MockDesktopUpdaterPlatform
   @override
   Future<void> generateFileHashes({String? path}) {
     return Future.value();
+  }
+
+  @override
+  Future<List<FileHashModel?>> verifyFileHash(String oldHashFilePath, String newHashFilePath) {
+    return Future.value([]);
   }
 }
 

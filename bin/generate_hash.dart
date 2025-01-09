@@ -154,6 +154,28 @@ Future<void> main(List<String> args) async {
 
   await extractArchiveToDisk(archive, "${lastBuildNumberFolder.path}/$foundVersion+$foundBuildNumber-$platform");
 
+  // Copy xxx.app/Contents folder to root, then remove xxx.app
+  if (platform == "macos") {
+    final extractedDir = Directory("${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform");
+    final appDir = extractedDir
+      .listSync()
+      .whereType<Directory>()
+      .firstWhere((d) => d.path.endsWith(".app"));
+
+    // if appDir found
+    if (appDir.existsSync()) {
+      final contentsDir = Directory("${appDir.path}/Contents");
+      if (contentsDir.existsSync()) {
+        final destinationDir = Directory("${extractedDir.path}.tmp");
+        await contentsDir.rename(destinationDir.path);
+      }
+      await extractedDir.delete(recursive: true);
+      await Directory(
+        "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform.tmp"
+      ).rename("${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform");
+    }
+  }
+
   await genFileHashes(
     path: "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
   );

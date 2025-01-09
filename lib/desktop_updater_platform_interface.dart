@@ -1,7 +1,6 @@
+import "package:desktop_updater/desktop_updater_method_channel.dart";
 import "package:desktop_updater/src/app_archive.dart";
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
-import 'desktop_updater_method_channel.dart';
+import "package:plugin_platform_interface/plugin_platform_interface.dart";
 
 abstract class DesktopUpdaterPlatform extends PlatformInterface {
   /// Constructs a DesktopUpdaterPlatform.
@@ -25,26 +24,31 @@ abstract class DesktopUpdaterPlatform extends PlatformInterface {
   }
 
   Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
+    throw UnimplementedError("platformVersion() has not been implemented.");
   }
 
   Future<void> restartApp() {
-    throw UnimplementedError('restartApp() has not been implemented.');
+    throw UnimplementedError("restartApp() has not been implemented.");
   }
-  
+
   Future<String?> sayHello() {
-    throw UnimplementedError('sayHello() has not been implemented.');
+    throw UnimplementedError("sayHello() has not been implemented.");
   }
 
   Future<String?> getExecutablePath() {
-    throw UnimplementedError('getExecutablePath() has not been implemented.');
+    throw UnimplementedError("getExecutablePath() has not been implemented.");
   }
 
   Future<void> generateFileHashes({String? path}) {
-    throw UnimplementedError('generateFileHashes() has not been implemented.');
+    throw UnimplementedError("generateFileHashes() has not been implemented.");
   }
 
-  Future<List<FileHashModel?>> verifyFileHash(String oldHashFilePath, String newHashFilePath) {
-    throw UnimplementedError('verifyFileHash() has not been implemented.');
+  Future<List<FileHashModel?>> verifyFileHash(
+      String oldHashFilePath, String newHashFilePath) {
+    throw UnimplementedError("verifyFileHash() has not been implemented.");
+  }
+
+  Future<void> updateApp({required String remoteUpdateFolder}) {
+    throw UnimplementedError("updateApp() has not been implemented.");
   }
 }

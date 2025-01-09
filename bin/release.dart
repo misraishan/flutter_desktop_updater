@@ -88,7 +88,7 @@ Future<void> main(List<String> args) async {
     );
   } else if (platform == "macos") {
     buildDir = Directory(
-      "build/macos/Build/Products/Release/$appNamePubspec.app/Contents",
+      "build/macos/Build/Products/Release/$appNamePubspec.app",
     );
   }
 
@@ -101,42 +101,11 @@ Future<void> main(List<String> args) async {
       "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform.zip";
 
   // Create zip file with zipPath
-  final encoder = ZipFileEncoder()..create(zipPath);
-
-  // // Zip every file in the buildDir directory
-  // // If path has directory strip buildDir.path then create directories in zip
-  // for (final file in files) {
-  //   if (file is File) {
-  //     final encoder2 = ZipFileEncoder()..create("${file.path}.zip", level: 9);
-  //     await encoder2.addFile(File(file.path));
-  //     await encoder2.close();
-  //   }
-  // }
-
-  // await encoder.addDirectory(
-  //   buildDir,
-  //   includeDirName: false,
-  //   filter: (entity, progress) {
-  //     // if entity.path is not .zip return ZipFileOperation.skip
-  //     if (!entity.path.endsWith(".zip")) {
-  //       return ZipFileOperation.skip;
-  //     } else {
-  //       return ZipFileOperation.include;
-  //     }
-  //   },
-  // );
-
-  // for (final file in files) {
-  //   if (file is File) {
-  //     // Remove .zip files
-  //     final zipFile = File("${file.path}.zip");
-  //     await zipFile.delete();
-  //   }
-  // }
+  final encoder = ZipFileEncoder()..create(zipPath, level: 0);
 
   await encoder.addDirectory(
     buildDir,
-    includeDirName: false,
+    includeDirName: true,
   );
 
   await encoder.close();

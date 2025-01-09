@@ -23,7 +23,8 @@ Future<String> getFileHash(File file) async {
   }
 }
 
-Future<List<FileHashModel?>> verifyFileHashes(String oldHashFilePath, String newHashFilePath) async {
+Future<List<FileHashModel?>> verifyFileHashes(
+    String oldHashFilePath, String newHashFilePath) async {
   if (oldHashFilePath == newHashFilePath) {
     return [];
   }
@@ -39,8 +40,14 @@ Future<List<FileHashModel?>> verifyFileHashes(String oldHashFilePath, String new
   final newString = await newFile.readAsString();
 
   // Decode as List<FileHashModel?>
-  final oldHashes = (jsonDecode(oldString) as List<dynamic>).map<FileHashModel?>((e) => FileHashModel.fromJson(e as Map<String, dynamic>)).toList();
-  final newHashes = (jsonDecode(newString) as List<dynamic>).map<FileHashModel?>((e) => FileHashModel.fromJson(e as Map<String, dynamic>)).toList();
+  final oldHashes = (jsonDecode(oldString) as List<dynamic>)
+      .map<FileHashModel?>(
+          (e) => FileHashModel.fromJson(e as Map<String, dynamic>))
+      .toList();
+  final newHashes = (jsonDecode(newString) as List<dynamic>)
+      .map<FileHashModel?>(
+          (e) => FileHashModel.fromJson(e as Map<String, dynamic>))
+      .toList();
 
   final changes = <FileHashModel?>[];
 
@@ -65,7 +72,7 @@ Future<List<FileHashModel?>> verifyFileHashes(String oldHashFilePath, String new
 }
 
 // Dizin içindeki tüm dosyaların hash'lerini alıp bir dosyaya yazan fonksiyon
-Future<String?> genFileHashes({String? path}) async {
+Future<String> genFileHashes({String? path}) async {
   path ??= await DesktopUpdater().getExecutablePath();
 
   final directoryPath =
@@ -76,7 +83,7 @@ Future<String?> genFileHashes({String? path}) async {
   }
 
   var dir = Directory(directoryPath);
-  
+
   if (Platform.isMacOS) {
     dir = dir.parent;
   }
@@ -87,8 +94,9 @@ Future<String?> genFileHashes({String? path}) async {
     final tempDir = await Directory.systemTemp.createTemp("desktop_updater");
 
     // temp dizinindeki dosyaları kopyala
-     // dir + output.txt dosyası oluşturulur
-    final outputFile = File("${tempDir.path}${Platform.pathSeparator}hashes.json");
+    // dir + output.txt dosyası oluşturulur
+    final outputFile =
+        File("${tempDir.path}${Platform.pathSeparator}hashes.json");
 
     // Çıktı dosyasını açıyoruz
     final sink = outputFile.openWrite();
@@ -103,7 +111,7 @@ Future<String?> genFileHashes({String? path}) async {
         final hash = await getFileHash(entity);
 
         final foundPath = entity.path.substring(dir.path.length + 1);
-  
+
         // Dosya yolunu ve hash değerini yaz
         if (hash.isNotEmpty) {
           final hashObj = FileHashModel(

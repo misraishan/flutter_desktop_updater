@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:desktop_updater/desktop_updater.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
@@ -60,6 +61,9 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
+              const Text(
+                "Running on: 0.1.2+3",
+              ),
               Text("Running on: $_platformVersion\n"),
               ElevatedButton(
                 onPressed: _desktopUpdaterPlugin.restartApp,
@@ -77,7 +81,8 @@ class _MyAppState extends State<MyApp> {
                   _desktopUpdaterPlugin.generateFileHashes().then(
                     (value) {
                       print(
-                          "File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+                        "File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms",
+                      );
                       print(value);
                       setState(() {
                         hashes = value ?? "";
@@ -98,29 +103,34 @@ class _MyAppState extends State<MyApp> {
 
                   _desktopUpdaterPlugin
                       .verifyFileHash(
-                          "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updatervIckPX/hashes.json",
-                          "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updaterAlf5te/hashes.json",)
+                    "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updatervIckPX/hashes.json",
+                    "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updaterAlf5te/hashes.json",
+                  )
                       .then(
                     (value) {
                       print(
-                          "File hashes verified in ${DateTime.now().difference(startTime).inMilliseconds} ms");
+                        "File hashes verified in ${DateTime.now().difference(startTime).inMilliseconds} ms",
+                      );
 
                       for (final file in value) {
                         if (file != null) {
                           print("${file.filePath} - ${file.length}b");
 
                           setState(() {
-                            changedFiles += "${file.filePath} - ${file.length}b\n";
+                            changedFiles +=
+                                "${file.filePath} - ${file.length}b\n";
                           });
                         }
                       }
 
                       // Calculate total length of all files
-                      print(value.fold<int>(
-                        0,
-                        (previousValue, element) =>
-                            previousValue + element!.length,
-                      ));
+                      print(
+                        value.fold<int>(
+                          0,
+                          (previousValue, element) =>
+                              previousValue + element!.length,
+                        ),
+                      );
 
                       setState(() {
                         length = value
@@ -138,10 +148,28 @@ class _MyAppState extends State<MyApp> {
               ),
               Text("Total length of changed files: $length\n"),
               Text("Changed files:\n$changedFiles"),
+              FilledButton(
+                onPressed: () {
+                  _desktopUpdaterPlugin.updateApp(
+                    remoteUpdateFolder:
+                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.2%2B3-macos",
+                  );
+                },
+                child: const Text("Update App"),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(StringProperty("length", length))
+      ..add(StringProperty("changedFiles", changedFiles))
+      ..add(StringProperty("hashes", hashes));
   }
 }
