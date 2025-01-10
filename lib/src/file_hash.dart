@@ -24,7 +24,9 @@ Future<String> getFileHash(File file) async {
 }
 
 Future<List<FileHashModel?>> verifyFileHashes(
-    String oldHashFilePath, String newHashFilePath) async {
+  String oldHashFilePath,
+  String newHashFilePath,
+) async {
   if (oldHashFilePath == newHashFilePath) {
     return [];
   }
@@ -42,11 +44,13 @@ Future<List<FileHashModel?>> verifyFileHashes(
   // Decode as List<FileHashModel?>
   final oldHashes = (jsonDecode(oldString) as List<dynamic>)
       .map<FileHashModel?>(
-          (e) => FileHashModel.fromJson(e as Map<String, dynamic>))
+        (e) => FileHashModel.fromJson(e as Map<String, dynamic>),
+      )
       .toList();
   final newHashes = (jsonDecode(newString) as List<dynamic>)
       .map<FileHashModel?>(
-          (e) => FileHashModel.fromJson(e as Map<String, dynamic>))
+        (e) => FileHashModel.fromJson(e as Map<String, dynamic>),
+      )
       .toList();
 
   final changes = <FileHashModel?>[];

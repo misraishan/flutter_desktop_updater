@@ -41,7 +41,7 @@ namespace desktop_updater
   DesktopUpdaterPlugin::~DesktopUpdaterPlugin() {}
 
   void RestartApp()
-  {
+  { 
     printf("Restarting the application...\n");
     // Get the current executable file path
     char szFilePath[MAX_PATH];

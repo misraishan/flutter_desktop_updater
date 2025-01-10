@@ -44,11 +44,19 @@ abstract class DesktopUpdaterPlatform extends PlatformInterface {
   }
 
   Future<List<FileHashModel?>> verifyFileHash(
-      String oldHashFilePath, String newHashFilePath) {
+    String oldHashFilePath,
+    String newHashFilePath,
+  ) {
     throw UnimplementedError("verifyFileHash() has not been implemented.");
   }
 
   Future<void> updateApp({required String remoteUpdateFolder}) {
     throw UnimplementedError("updateApp() has not been implemented.");
+  }
+
+  Future<List<FileHashModel?>> prepareUpdateApp({
+    required String remoteUpdateFolder,
+  }) {
+    throw UnimplementedError("prepareUpdateApp() has not been implemented.");
   }
 }

@@ -62,7 +62,7 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             children: [
               const Text(
-                "Running on: 0.1.2+3",
+                "Running on: 0.1.3+4",
               ),
               Text("Running on: $_platformVersion\n"),
               ElevatedButton(
@@ -102,9 +102,9 @@ class _MyAppState extends State<MyApp> {
                   });
 
                   _desktopUpdaterPlugin
-                      .verifyFileHash(
-                    "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updatervIckPX/hashes.json",
-                    "/var/folders/6w/86tr67px42vbszwd8tdlr3vr0000gn/T/desktop_updaterAlf5te/hashes.json",
+                      .prepareUpdateApp(
+                    remoteUpdateFolder:
+                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.4%2B5-macos",
                   )
                       .then(
                     (value) {
@@ -146,13 +146,32 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text("Verify File Hash"),
               ),
-              Text("Total length of changed files: $length\n"),
-              Text("Changed files:\n$changedFiles"),
+              SizedBox(
+                height: 100,
+                child: ListView(
+                  children: [
+                    Text("Total length of changed files: $length\n"),
+                    Text("Changed files:\n$changedFiles"),
+                  ],
+                ),
+              ),
               FilledButton(
                 onPressed: () {
-                  _desktopUpdaterPlugin.updateApp(
+                  _desktopUpdaterPlugin
+                      .updateApp(
                     remoteUpdateFolder:
-                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.2%2B3-macos",
+                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.4%2B5-macos",
+                  )
+                      .then(
+                    (value) {
+                      print("App updated");
+                      // Snackbar context
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("App updated"),
+                        ),
+                      );
+                    },
                   );
                 },
                 child: const Text("Update App"),

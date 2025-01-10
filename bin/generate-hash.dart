@@ -1,9 +1,10 @@
 import "dart:convert";
 import "dart:io";
 
-import "package:archive/archive_io.dart";
 import "package:cryptography_plus/cryptography_plus.dart";
 import "package:desktop_updater/src/app_archive.dart";
+
+import "helper/copy.dart";
 
 Future<String> getFileHash(File file) async {
   try {
@@ -29,14 +30,14 @@ Future<String?> genFileHashes({required String? path}) async {
     throw Exception("Desktop Updater: Executable path is null");
   }
 
-  var dir = Directory(path);
+  final dir = Directory(path);
 
   print("Directory path: ${dir.path}");
 
   // Eğer belirtilen yol bir dizinse
   if (await dir.exists()) {
     // temp dizinindeki dosyaları kopyala
-     // dir + output.txt dosyası oluşturulur
+    // dir + output.txt dosyası oluşturulur
     final outputFile = File("${dir.path}${Platform.pathSeparator}hashes.json");
 
     // Çıktı dosyasını açıyoruz
@@ -47,11 +48,13 @@ Future<String?> genFileHashes({required String? path}) async {
 
     // Dizin içindeki tüm dosyaları döngüyle okuyoruz
     await for (final entity in dir.list(recursive: true, followLinks: false)) {
-      if (entity is File && !entity.path.endsWith("hashes.json") && !entity.path.endsWith(".DS_Store")) {
+      if (entity is File &&
+          !entity.path.endsWith("hashes.json") &&
+          !entity.path.endsWith(".DS_Store")) {
         // Dosyanın hash'ini al
         final hash = await getFileHash(entity);
         final foundPath = entity.path.substring(dir.path.length + 1);
-  
+
         // Dosya yolunu ve hash değerini yaz
         if (hash.isNotEmpty) {
           final hashObj = FileHashModel(
@@ -110,74 +113,58 @@ Future<void> main(List<String> args) async {
   final files = await Directory(lastBuildNumberFolder.path).list().toList();
 
   var platformFound = false;
-  String? foundFile;
+  String? foundDirectory;
   String? foundVersion;
   String? foundBuildNumber;
 
   /// Check if there is a file in given platform
   for (final file in files) {
-    if (file is File && file.path.endsWith(".zip")) {
-      // desktop_updater_example-0.1.1+2-macos.zip
+    if (file is Directory) {
+      // desktop_updater_example-0.1.1+2-macos.app
       // version is 0.1.1, build number is 2, platform is macos, name is appNamePubspec variable
       final version = file.path.split("-").elementAt(1).split("+").first;
-      final buildNumber = file.path.split("-").elementAt(1).split("+").last.split("-").first;
+      final buildNumber =
+          file.path.split("-").elementAt(1).split("+").last.split("-").first;
       final foundPlatform = file.path.split("-").last.split(".").first;
 
       if (foundPlatform == platform) {
         platformFound = true;
-        foundFile = file.path;
+        foundDirectory = file.path;
         foundVersion = version;
         foundBuildNumber = buildNumber;
       }
     }
   }
 
-  if (!platformFound || foundFile == null) {
+  if (!platformFound || foundDirectory == null) {
     print("File not found for platform: $platform");
     exit(1);
   } else {
-    print("Using zip: $foundFile");
+    print("Using archive: $foundDirectory");
   }
 
   /// Check if the file is a zip file
-  if (!foundFile.endsWith(".zip")) {
-    print("File is not a zip file");
-    exit(1);
-  }
+  // if (!foundDirectory.endsWith(".app")) {
+  //   print("File is not a zip file");
+  //   exit(1);
+  // }
 
-  // Unzip the file
-  // Use an InputFileStream to access the zip file without storing it in memory.
-  final inputStream = InputFileStream(foundFile);
-  // Decode the zip from the InputFileStream. The archive will have the contents of the
-  // zip, without having stored the data in memory.
-  final archive = ZipDecoder().decodeStream(inputStream);
+  // Get current build name and number from pubspec.yaml
+  final pubspec = File("pubspec.yaml");
+  final pubspecContent = await pubspec.readAsString();
+  final appNamePubspec =
+      RegExp(r"name: (.+)").firstMatch(pubspecContent)!.group(1);
 
-  await extractArchiveToDisk(archive, "${lastBuildNumberFolder.path}/$foundVersion+$foundBuildNumber-$platform");
-
-  // Copy xxx.app/Contents folder to root, then remove xxx.app
-  if (platform == "macos") {
-    final extractedDir = Directory("${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform");
-    final appDir = extractedDir
-      .listSync()
-      .whereType<Directory>()
-      .firstWhere((d) => d.path.endsWith(".app"));
-
-    // if appDir found
-    if (appDir.existsSync()) {
-      final contentsDir = Directory("${appDir.path}/Contents");
-      if (contentsDir.existsSync()) {
-        final destinationDir = Directory("${extractedDir.path}.tmp");
-        await contentsDir.rename(destinationDir.path);
-      }
-      await extractedDir.delete(recursive: true);
-      await Directory(
-        "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform.tmp"
-      ).rename("${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform");
-    }
-  }
+  await copyDirectory(
+    Directory("$foundDirectory/$appNamePubspec.app/Contents"),
+    Directory(
+      "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
+    ),
+  );
 
   await genFileHashes(
-    path: "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
+    path:
+        "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
   );
 
   return;

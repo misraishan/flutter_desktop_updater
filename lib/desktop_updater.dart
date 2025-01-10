@@ -1,6 +1,7 @@
 import "package:desktop_updater/desktop_updater_platform_interface.dart";
 import "package:desktop_updater/src/app_archive.dart";
 import "package:desktop_updater/src/file_hash.dart";
+import "package:desktop_updater/src/prepare.dart";
 import "package:desktop_updater/src/update.dart";
 
 class DesktopUpdater {
@@ -36,5 +37,11 @@ class DesktopUpdater {
     required String remoteUpdateFolder,
   }) {
     return updateAppFunction(remoteUpdateFolder: remoteUpdateFolder);
+  }
+
+  Future<List<FileHashModel?>> prepareUpdateApp({
+    required String remoteUpdateFolder,
+  }) {
+    return prepareUpdateAppFunction(remoteUpdateFolder: remoteUpdateFolder);
   }
 }

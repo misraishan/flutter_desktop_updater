@@ -1,7 +1,7 @@
 import "dart:convert";
 import "dart:io";
 
-import "package:archive/archive_io.dart";
+import "helper/copy.dart";
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
@@ -97,18 +97,17 @@ Future<void> main(List<String> args) async {
   // Get only last part of the path
   final appName = appNamePubspec;
 
-  final zipPath =
-      "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform.zip";
+  final distPath =
+      "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform/$appName.app";
 
-  // Create zip file with zipPath
-  final encoder = ZipFileEncoder()..create(zipPath, level: 0);
+  // Copy buildDir to distPath, included directory name
+  final distDir = Directory(distPath);
+  if (distDir.existsSync()) {
+    distDir.deleteSync(recursive: true);
+  }
 
-  await encoder.addDirectory(
-    buildDir,
-    includeDirName: true,
-  );
+  // Copy buildDir to distPath
+  await copyDirectory(buildDir, Directory(distPath));
 
-  await encoder.close();
-
-  print("Zip created to $zipPath");
+  print("Archive created to $distPath");
 }

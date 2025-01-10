@@ -3,38 +3,53 @@ import FlutterMacOS
 
 public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
     func restartApp() {
-        let currentPath = Bundle.main.executablePath!
-        let newPath = currentPath + ".replace"
-        let backupPath = currentPath + ".backup"
-        
-        print("Current path: \(currentPath)")
+        let executablePath = Bundle.main.executablePath!
+        print("executablePath path: \(executablePath)")
         
         NSApplication.shared.terminate(nil)
-
+        
+        let updateFolder = Bundle.main.bundlePath + "/Contents/update"
         do {
-          print("Moving \(currentPath) to \(backupPath)")
-          print("Copying \(newPath) to \(currentPath)")
-            // remove .backup if it exists
-            if FileManager.default.fileExists(atPath: backupPath) {
-                try FileManager.default.removeItem(atPath: backupPath)
+            let updateFiles = try FileManager.default.contentsOfDirectory(atPath: updateFolder)
+            for file in updateFiles {
+                let source = updateFolder + "/" + file
+                let destination = Bundle.main.bundlePath + "/Contents/" + file
+                print("Copying \(source) to \(destination)")
+                do {
+                    try FileManager.default.copyItem(atPath: source, toPath: destination)
+                } 
+                catch {
+                    // print("Error copying update files: \(error)")
+                    print("Copying \(source) to \(destination) with replace")
+                    // if error is File exists, replace
+                    if let e = error as NSError?, e.domain == NSCocoaErrorDomain && e.code == NSFileWriteFileExistsError {
+                        do {
+                            try FileManager.default.removeItem(atPath: destination)
+                            try FileManager.default.copyItem(atPath: source, toPath: destination)
+                        } catch {
+                            print("Error replace update files: \(error)")
+                        }
+                    }
+                }
             }
-            if FileManager.default.fileExists(atPath: newPath) {
-                try FileManager.default.removeItem(atPath: newPath)
-            }
-            try FileManager.default.moveItem(atPath: currentPath, toPath: backupPath)
-            try FileManager.default.copyItem(atPath: backupPath, toPath: newPath)
-            try FileManager.default.copyItem(atPath: newPath, toPath: currentPath)
-            
+        } catch {
+            print("Error reading update folder: \(error)")
+            return
+        }
+        
+        do {
             // Set execute permissions
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: currentPath)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executablePath)
             
             let process = Process()
-            process.executableURL = URL(fileURLWithPath: currentPath)
+            process.executableURL = URL(fileURLWithPath: executablePath)
             process.arguments = []
             try process.run()
         } catch {
             print("Error during restart: \(error)")
         }
+
+        // Remove update folder
     }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
