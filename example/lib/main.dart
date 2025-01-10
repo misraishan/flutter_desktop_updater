@@ -203,8 +203,8 @@ class _MyAppState extends State<MyApp> {
                 },
                 child: const Text("Update App"),
               ),
-              Text(
-                "Update progress:\n${updateProgress?.currentFile ?? ""}\n${updateProgress?.receivedBytes ?? 0}/${updateProgress?.totalBytes ?? 0}b\n${updateProgress?.completedFiles ?? 0}/${updateProgress?.totalFiles ?? 0}",
+              SelectableText(
+                "Update progress:\n${updateProgress?.currentFile ?? ""}\n${updateProgress?.receivedBytes ?? 0}/${updateProgress?.totalBytes ?? 0}\n${updateProgress?.completedFiles ?? 0}/${updateProgress?.totalFiles ?? 0}",
               ),
             ],
           ),

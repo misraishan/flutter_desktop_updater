@@ -7,7 +7,7 @@ import "package:desktop_updater/src/file_hash.dart";
 import "package:http/http.dart" as http;
 
 /// Modified updateAppFunction to return a stream of UpdateProgress.
-/// The stream emits total bytes, received bytes, and the currently downloading file's name.
+/// The stream emits total kilobytes, received kilobytes, and the currently downloading file's name.
 Future<Stream<UpdateProgress>> updateAppFunction({
   required String remoteUpdateFolder,
 }) async {
@@ -29,11 +29,6 @@ Future<Stream<UpdateProgress>> updateAppFunction({
   }
 
   final responseStream = StreamController<UpdateProgress>();
-  final downloadFutures = <Future<void>>[];
-  var totalBytes = 0;
-  var receivedBytes = 0;
-  var totalFiles = 0;
-  var completedFiles = 0;
 
   try {
     if (await dir.exists()) {
@@ -53,33 +48,15 @@ Future<Stream<UpdateProgress>> updateAppFunction({
       final outputFile =
           File("${tempDir.path}${Platform.pathSeparator}hashes.json");
       final sink = outputFile.openWrite();
-      var received = 0;
-      final contentLength = newHashFileResponse.contentLength ?? 0;
 
       await newHashFileResponse.stream.listen(
-        (List<int> chunk) {
-          received += chunk.length;
-          sink.add(chunk);
-          if (contentLength != 0) {
-            // final progress = received / contentLength;
-            responseStream.add(
-              UpdateProgress(
-                totalBytes: contentLength,
-                receivedBytes: received,
-                currentFile: "hashes.json",
-                totalFiles: totalFiles,
-                completedFiles: completedFiles,
-              ),
-            );
-          }
-        },
+        sink.add,
         onDone: () async {
           await sink.close();
           client.close();
-          print("Hashes file downloaded to ${outputFile.path}");
         },
-        onError: (e) {
-          sink.close();
+        onError: (e) async {
+          await sink.close();
           client.close();
           throw e;
         },
@@ -96,29 +73,28 @@ Future<Stream<UpdateProgress>> updateAppFunction({
         newHashFilePath,
       );
 
-      print("Changes: ${changes.length} files");
-
-      totalFiles = changes.length;
-      final totalLength = changes.fold<int>(
-        0,
-        (previousValue, element) => previousValue + (element?.length ?? 0),
-      );
-
-      // Calculate total bytes to download
-      for (final file in changes) {
-        if (file != null) {
-          final fileUrl = "$remoteUpdateFolder/${file.filePath}";
-          final headResponse = await client.head(Uri.parse(fileUrl));
-          if (headResponse.statusCode == 200 &&
-              headResponse.headers.containsKey("content-length")) {
-            totalBytes += int.parse(headResponse.headers["content-length"]!);
-          }
-        }
+      if (changes.isEmpty) {
+        print("No updates required.");
+        await responseStream.close();
+        return responseStream.stream;
       }
 
+      var receivedBytes = 0.0;
+      final totalFiles = changes.length;
+      var completedFiles = 0;
+
+      // Calculate total length in KB
+      final totalLengthKB = changes.fold<double>(
+        0,
+        (previousValue, element) =>
+            previousValue + ((element?.length ?? 0) / 1024.0),
+      );
+
+      final changesFutureList = <Future<dynamic>>[];
+
       for (final file in changes) {
         if (file != null) {
-          downloadFutures.add(
+          changesFutureList.add(
             downloadFile(
               remoteUpdateFolder,
               file.filePath,
@@ -127,7 +103,7 @@ Future<Stream<UpdateProgress>> updateAppFunction({
                 receivedBytes += received;
                 responseStream.add(
                   UpdateProgress(
-                    totalBytes: totalLength,
+                    totalBytes: totalLengthKB,
                     receivedBytes: receivedBytes,
                     currentFile: file.filePath,
                     totalFiles: totalFiles,
@@ -137,6 +113,16 @@ Future<Stream<UpdateProgress>> updateAppFunction({
               },
             ).then((_) {
               completedFiles += 1;
+
+              responseStream.add(
+                UpdateProgress(
+                  totalBytes: totalLengthKB,
+                  receivedBytes: receivedBytes,
+                  currentFile: file.filePath,
+                  totalFiles: totalFiles,
+                  completedFiles: completedFiles,
+                ),
+              );
               print("Completed: ${file.filePath}");
             }).catchError((error) {
               responseStream.addError(error);
@@ -146,11 +132,14 @@ Future<Stream<UpdateProgress>> updateAppFunction({
         }
       }
 
-      await Future.wait(downloadFutures);
-      await responseStream.close();
-    }
+      unawaited(
+        Future.wait(changesFutureList).then((_) async {
+          await responseStream.close();
+        }),
+      );
 
-    await responseStream.close();
+      return responseStream.stream;
+    }
   } catch (e) {
     responseStream.addError(e);
     await responseStream.close();

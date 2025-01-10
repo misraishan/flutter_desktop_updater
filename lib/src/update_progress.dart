@@ -7,8 +7,8 @@ class UpdateProgress {
     required this.totalFiles,
     required this.completedFiles,
   });
-  final int totalBytes;
-  final int receivedBytes;
+  final double totalBytes;
+  final double receivedBytes;
   final String currentFile;
   final int totalFiles;
   final int completedFiles;

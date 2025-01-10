@@ -3,13 +3,13 @@ import "dart:io";
 import "package:http/http.dart" as http;
 import "package:path/path.dart" as path;
 
-/// Modified downloadFile to report progress.
-/// [progressCallback] receives two integers: bytes received and total bytes.
+/// Modified downloadFile to report progress based on HTTP reception only.
+/// [progressCallback] receives two doubles: receivedKB and totalKB.
 Future<void> downloadFile(
   String? host,
   String filePath,
   String savePath,
-  void Function(int received, int total)? progressCallback,
+  void Function(double receivedKB, double totalKB)? progressCallback,
 ) async {
   if (host == null) return;
 
@@ -32,18 +32,26 @@ Future<void> downloadFile(
     await saveDirectory.create(recursive: true);
   }
 
-  // Save the file with progress reporting
+  // Prepare file for writing
   final file = File(fullSavePath);
   final sink = file.openWrite();
   var received = 0;
   final contentLength = response.contentLength ?? 0;
 
+  // Listen to the HTTP response stream
   await response.stream.listen(
     (List<int> chunk) {
-      received += chunk.length;
+      // Write chunk to file
       sink.add(chunk);
+
+      // Increment received bytes based on HTTP chunk
+      received = chunk.length;
+
+      // Report progress
       if (progressCallback != null && contentLength != 0) {
-        progressCallback(received, contentLength);
+        final receivedKB = received / 1024;
+        final totalKB = contentLength / 1024;
+        progressCallback(receivedKB, totalKB);
       }
     },
     onDone: () async {
