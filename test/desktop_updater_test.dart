@@ -32,8 +32,14 @@ class MockDesktopUpdaterPlatform
   }
 
   @override
-  Future<List<FileHashModel?>> verifyFileHash(String oldHashFilePath, String newHashFilePath) {
+  Future<List<FileHashModel?>> verifyFileHash(
+      String oldHashFilePath, String newHashFilePath) {
     return Future.value([]);
+  }
+
+  @override
+  Future<void> updateApp({required String remoteUpdateFolder}) {
+    return Future.value();
   }
 }
 
