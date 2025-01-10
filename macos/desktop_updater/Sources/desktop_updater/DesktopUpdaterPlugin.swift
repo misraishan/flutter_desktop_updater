@@ -2,6 +2,12 @@ import Cocoa
 import FlutterMacOS
 
 public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
+    func getCurrentVersion() -> String {
+        let infoDictionary = Bundle.main.infoDictionary!
+        let version = infoDictionary["CFBundleVersion"] as! String
+        return version
+    }
+    
     func restartApp() {
         let executablePath = Bundle.main.executablePath!
         print("executablePath path: \(executablePath)")
@@ -10,30 +16,9 @@ public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
         
         let updateFolder = Bundle.main.bundlePath + "/Contents/update"
         do {
-            let updateFiles = try FileManager.default.contentsOfDirectory(atPath: updateFolder)
-            for file in updateFiles {
-                let source = updateFolder + "/" + file
-                let destination = Bundle.main.bundlePath + "/Contents/" + file
-                print("Copying \(source) to \(destination)")
-                do {
-                    try FileManager.default.copyItem(atPath: source, toPath: destination)
-                } 
-                catch {
-                    // print("Error copying update files: \(error)")
-                    print("Copying \(source) to \(destination) with replace")
-                    // if error is File exists, replace
-                    if let e = error as NSError?, e.domain == NSCocoaErrorDomain && e.code == NSFileWriteFileExistsError {
-                        do {
-                            try FileManager.default.removeItem(atPath: destination)
-                            try FileManager.default.copyItem(atPath: source, toPath: destination)
-                        } catch {
-                            print("Error replace update files: \(error)")
-                        }
-                    }
-                }
-            }
+            try copyAndReplaceFiles(from: updateFolder, to: Bundle.main.bundlePath + "/Contents")
         } catch {
-            print("Error reading update folder: \(error)")
+            print("Error updating files: \(error)")
             return
         }
         
@@ -49,7 +34,48 @@ public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
             print("Error during restart: \(error)")
         }
 
-        // Remove update folder
+        // Optionally, remove update folder after successful update
+        // try? FileManager.default.removeItem(atPath: updateFolder)
+    }
+    
+    func copyAndReplaceFiles(from sourcePath: String, to destinationPath: String) throws {
+        let fileManager = FileManager.default
+        let enumerator = fileManager.enumerator(atPath: sourcePath)
+        
+        while let element = enumerator?.nextObject() as? String {
+            let sourceItemPath = (sourcePath as NSString).appendingPathComponent(element)
+            let destinationItemPath = (destinationPath as NSString).appendingPathComponent(element)
+            
+            var isDir: ObjCBool = false
+            if fileManager.fileExists(atPath: sourceItemPath, isDirectory: &isDir) {
+                if isDir.boolValue {
+                    // Ensure the directory exists at destination
+                    if !fileManager.fileExists(atPath: destinationItemPath) {
+                        try fileManager.createDirectory(atPath: destinationItemPath, withIntermediateDirectories: true, attributes: nil)
+                    }
+                } else {
+                    // Handle file or symbolic link
+                    let attributes = try fileManager.attributesOfItem(atPath: sourceItemPath)
+                    if attributes[.type] as? FileAttributeType == .typeSymbolicLink {
+                        // Handle symbolic link
+                        if fileManager.fileExists(atPath: destinationItemPath) {
+                            try fileManager.removeItem(atPath: destinationItemPath)
+                        }
+                        let target = try fileManager.destinationOfSymbolicLink(atPath: sourceItemPath)
+                        try fileManager.createSymbolicLink(atPath: destinationItemPath, withDestinationPath: target)
+                    } else {
+                        // Handle regular file
+                        if fileManager.fileExists(atPath: destinationItemPath) {
+                            // Replace existing file
+                            try fileManager.replaceItem(at: URL(fileURLWithPath: destinationItemPath), withItemAt: URL(fileURLWithPath: sourceItemPath), backupItemName: nil, options: [], resultingItemURL: nil)
+                        } else {
+                            // Copy new file
+                            try fileManager.copyItem(atPath: sourceItemPath, toPath: destinationItemPath)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -67,6 +93,8 @@ public class DesktopUpdaterPlugin: NSObject, FlutterPlugin {
             result(nil)
         case "getExecutablePath":
             result(Bundle.main.executablePath)
+        case "getCurrentVersion":
+            result(getCurrentVersion())
         default:
             result(FlutterMethodNotImplemented)
         }

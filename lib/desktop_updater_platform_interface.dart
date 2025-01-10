@@ -59,4 +59,8 @@ abstract class DesktopUpdaterPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError("prepareUpdateApp() has not been implemented.");
   }
+
+  Future<String?> getCurrentVersion() {
+    throw UnimplementedError("getCurrentVersion() has not been implemented.");
+  }
 }

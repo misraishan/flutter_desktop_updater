@@ -22,6 +22,8 @@ class _MyAppState extends State<MyApp> {
   String length = "";
   String changedFiles = "";
   String hashes = "";
+  ItemModel? appArchiveItem;
+  UpdateProgress? updateProgress;
 
   @override
   void initState() {
@@ -58,11 +60,13 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text("Plugin example app"),
         ),
-        body: Center(
-          child: Column(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ListView(
+            shrinkWrap: true,
             children: [
               const Text(
-                "Running on: 0.1.3+4",
+                "Running on: 0.1.6+7",
               ),
               Text("Running on: $_platformVersion\n"),
               ElevatedButton(
@@ -104,7 +108,7 @@ class _MyAppState extends State<MyApp> {
                   _desktopUpdaterPlugin
                       .prepareUpdateApp(
                     remoteUpdateFolder:
-                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.4%2B5-macos",
+                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.6%2B7-macos",
                   )
                       .then(
                     (value) {
@@ -155,26 +159,52 @@ class _MyAppState extends State<MyApp> {
                   ],
                 ),
               ),
+              OutlinedButton(
+                onPressed: () {
+                  _desktopUpdaterPlugin
+                      .versionCheck(
+                    appArchiveUrl:
+                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/app-archive.json",
+                  )
+                      .then(
+                    (value) {
+                      print("App archive downloaded");
+                      print(value?.url);
+
+                      setState(() {
+                        appArchiveItem = value;
+                      });
+                    },
+                  );
+                },
+                child: const Text("Check version"),
+              ),
+              SelectableText("App archive item:\n${appArchiveItem?.url}\n"),
               FilledButton(
                 onPressed: () {
                   _desktopUpdaterPlugin
                       .updateApp(
-                    remoteUpdateFolder:
-                        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.4%2B5-macos",
+                    remoteUpdateFolder: appArchiveItem?.url ?? "",
                   )
                       .then(
                     (value) {
-                      print("App updated");
-                      // Snackbar context
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("App updated"),
-                        ),
+                      value.listen(
+                        (event) {
+                          setState(() {
+                            updateProgress = event;
+                          });
+                        },
+                        onDone: () {
+                          print("Update done");
+                        },
                       );
                     },
                   );
                 },
                 child: const Text("Update App"),
+              ),
+              Text(
+                "Update progress:\n${updateProgress?.currentFile ?? ""}\n${updateProgress?.receivedBytes ?? 0}/${updateProgress?.totalBytes ?? 0}b\n${updateProgress?.completedFiles ?? 0}/${updateProgress?.totalFiles ?? 0}",
               ),
             ],
           ),
@@ -190,5 +220,10 @@ class _MyAppState extends State<MyApp> {
       ..add(StringProperty("length", length))
       ..add(StringProperty("changedFiles", changedFiles))
       ..add(StringProperty("hashes", hashes));
+    properties
+        .add(DiagnosticsProperty<ItemModel?>("appArchiveItem", appArchiveItem));
+    properties.add(
+      DiagnosticsProperty<UpdateProgress?>("updateProgress", updateProgress),
+    );
   }
 }

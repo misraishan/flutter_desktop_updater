@@ -3,6 +3,11 @@ import "package:desktop_updater/src/app_archive.dart";
 import "package:desktop_updater/src/file_hash.dart";
 import "package:desktop_updater/src/prepare.dart";
 import "package:desktop_updater/src/update.dart";
+import "package:desktop_updater/src/update_progress.dart";
+import "package:desktop_updater/src/version_check.dart";
+
+export "package:desktop_updater/src/app_archive.dart";
+export "package:desktop_updater/src/update_progress.dart";
 
 class DesktopUpdater {
   Future<String?> getPlatformVersion() {
@@ -33,7 +38,7 @@ class DesktopUpdater {
     return genFileHashes(path: path);
   }
 
-  Future<void> updateApp({
+  Future<Stream<UpdateProgress>> updateApp({
     required String remoteUpdateFolder,
   }) {
     return updateAppFunction(remoteUpdateFolder: remoteUpdateFolder);
@@ -43,5 +48,15 @@ class DesktopUpdater {
     required String remoteUpdateFolder,
   }) {
     return prepareUpdateAppFunction(remoteUpdateFolder: remoteUpdateFolder);
+  }
+
+  Future<String?> getCurrentVersion() {
+    return DesktopUpdaterPlatform.instance.getCurrentVersion();
+  }
+
+  Future<ItemModel?> versionCheck({
+    required String appArchiveUrl,
+  }) {
+    return versionCheckFunction(appArchiveUrl: appArchiveUrl);
   }
 }

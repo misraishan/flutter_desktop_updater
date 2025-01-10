@@ -34,4 +34,9 @@ class MethodChannelDesktopUpdater extends DesktopUpdaterPlatform {
   Future<void> updateApp({required String remoteUpdateFolder}) async {
     return methodChannel.invokeMethod<void>("updateApp", [remoteUpdateFolder]);
   }
+
+  @override
+  Future<String?> getCurrentVersion() async {
+    return methodChannel.invokeMethod<String>("getCurrentVersion");
+  }
 }
