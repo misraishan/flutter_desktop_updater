@@ -155,12 +155,23 @@ Future<void> main(List<String> args) async {
   final appNamePubspec =
       RegExp(r"name: (.+)").firstMatch(pubspecContent)!.group(1);
 
-  await copyDirectory(
-    Directory("$foundDirectory/$appNamePubspec.app/Contents"),
-    Directory(
-      "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
-    ),
-  );
+  if (platform == "windows") {
+    await copyDirectory(
+      Directory(
+        foundDirectory,
+      ),
+      Directory(
+        "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
+      ),
+    );
+  } else if (platform == "macos") {
+    await copyDirectory(
+      Directory("$foundDirectory/$appNamePubspec.app/Contents"),
+      Directory(
+        "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
+      ),
+    );
+  }
 
   await genFileHashes(
     path:

@@ -66,7 +66,7 @@ class _MyAppState extends State<MyApp> {
             shrinkWrap: true,
             children: [
               const Text(
-                "Running on: 0.1.6+7",
+                "Running on: 0.1.5+6",
               ),
               Text("Running on: $_platformVersion\n"),
               ElevatedButton(

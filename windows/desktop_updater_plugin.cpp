@@ -2,9 +2,9 @@
 
 // This must be included before many other Windows headers.
 #include <windows.h>
-
-// For getPlatformVersion; remove unless needed for your plugin implementation.
 #include <VersionHelpers.h>
+
+#pragma comment(lib, "Version.lib") // Link with Version.lib
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
@@ -210,6 +210,75 @@ namespace desktop_updater
       WideCharToMultiByte(CP_UTF8, 0, executable_path, -1, &executablePathStr[0], size_needed, NULL, NULL);
       
       result->Success(flutter::EncodableValue(executablePathStr));
+    }
+    else if (method_call.method_name().compare("getCurrentVersion") == 0)
+    {
+      // Get only bundle version, Product version 1.0.0+2, should return 2
+      wchar_t exePath[MAX_PATH];
+      GetModuleFileNameW(NULL, exePath, MAX_PATH);
+      
+      DWORD verHandle = 0;
+      UINT size = 0;
+      LPBYTE lpBuffer = NULL;
+      DWORD verSize = GetFileVersionInfoSizeW(exePath, &verHandle);
+      if (verSize == NULL)
+      {
+          result->Error("VersionError", "Unable to get version size.");
+          return;
+      }
+
+      std::vector<BYTE> verData(verSize);
+      if (!GetFileVersionInfoW(exePath, verHandle, verSize, verData.data()))
+      {
+          result->Error("VersionError", "Unable to get version info.");
+          return;
+      }
+
+      // Retrieve translation information
+      struct LANGANDCODEPAGE {
+          WORD wLanguage;
+          WORD wCodePage;
+      } *lpTranslate;
+
+      UINT cbTranslate = 0;
+      if (!VerQueryValueW(verData.data(), L"\\VarFileInfo\\Translation", 
+                         (LPVOID*)&lpTranslate, &cbTranslate) || cbTranslate < sizeof(LANGANDCODEPAGE))
+      {
+          result->Error("VersionError", "Unable to get translation info.");
+          return;
+      }
+
+      // Build the query string using the first translation
+      wchar_t subBlock[50];
+      swprintf(subBlock, 50, L"\\StringFileInfo\\%04x%04x\\ProductVersion", 
+               lpTranslate[0].wLanguage, lpTranslate[0].wCodePage);
+
+      if (!VerQueryValueW(verData.data(), subBlock, (LPVOID*)&lpBuffer, &size))
+      {
+          result->Error("VersionError", "Unable to query version value.");
+          return;
+      }
+
+      std::wstring productVersion((wchar_t*)lpBuffer);
+      size_t plusPos = productVersion.find(L'+');
+      if (plusPos != std::wstring::npos && plusPos + 1 < productVersion.length())
+      {
+          std::wstring buildNumber = productVersion.substr(plusPos + 1);
+
+          // Trim any trailing spaces
+          buildNumber.erase(buildNumber.find_last_not_of(L' ') + 1);
+          
+          // Convert wchar_t to std::string (UTF-8)
+          int size_needed = WideCharToMultiByte(CP_UTF8, 0, buildNumber.c_str(), -1, NULL, 0, NULL, NULL);
+          std::string buildNumberStr(size_needed - 1, 0); // Exclude null terminator
+          WideCharToMultiByte(CP_UTF8, 0, buildNumber.c_str(), -1, &buildNumberStr[0], size_needed - 1, NULL, NULL);
+
+          result->Success(flutter::EncodableValue(buildNumberStr));
+      }
+      else
+      {
+          result->Error("VersionError", "Invalid version format.");
+      }
     }
     else
     {

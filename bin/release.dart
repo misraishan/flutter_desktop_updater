@@ -84,7 +84,7 @@ Future<void> main(List<String> args) async {
   // Found executable file name in build folder
   if (platform == "windows") {
     buildDir = Directory(
-      "build${Platform.pathSeparator}$platform${Platform.pathSeparator}x64${Platform.pathSeparator}runner${Platform.pathSeparator}Release",
+      "build${Platform.pathSeparator}windows${Platform.pathSeparator}x64${Platform.pathSeparator}runner${Platform.pathSeparator}Release",
     );
   } else if (platform == "macos") {
     buildDir = Directory(
@@ -97,8 +97,15 @@ Future<void> main(List<String> args) async {
   // Get only last part of the path
   final appName = appNamePubspec;
 
-  final distPath =
-      "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform/$appName.app";
+  late String distPath;
+
+  if (platform == "windows") {
+    distPath =
+        "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform";
+  } else if (platform == "macos") {
+    distPath =
+        "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform/$appName.app";
+  }
 
   // Copy buildDir to distPath, included directory name
   final distDir = Directory(distPath);
