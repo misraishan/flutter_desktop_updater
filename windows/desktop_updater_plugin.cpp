@@ -14,14 +14,10 @@
 
 #include <memory>
 #include <sstream>
-#include <filesystem> // Add filesystem header
-
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <windows.h>
-#include <filesystem>
-#include <shlwapi.h>
 
 namespace fs = std::filesystem;
 namespace desktop_updater
@@ -51,90 +47,76 @@ namespace desktop_updater
 
   DesktopUpdaterPlugin::~DesktopUpdaterPlugin() {}
 
-  // Add recursive directory listing function
-  void ListDirectoryContents(const std::wstring& path, int level = 0) {
-      std::wstring indent(level * 2, L' ');
-      WIN32_FIND_DATAW findData;
-      std::wstring searchPath = path + L"\\*";
-      
-      HANDLE hFind = FindFirstFileW(searchPath.c_str(), &findData);
-      if (hFind == INVALID_HANDLE_VALUE) {
-          printf("Failed to list directory: %ls (Error: %d)\n", path.c_str(), GetLastError());
-          return;
-      }
+  // Modify the createBatFile function to accept parameters and use them in the bat script
+  void createBatFile(const std::wstring &updateDir, const std::wstring &destDir, const wchar_t *executable_path)
+  {
+    // Convert wide strings to regular strings using Windows API for proper conversion
+    int updateSize = WideCharToMultiByte(CP_UTF8, 0, updateDir.c_str(), -1, NULL, 0, NULL, NULL);
+    std::string updateDirStr(updateSize, 0);
+    WideCharToMultiByte(CP_UTF8, 0, updateDir.c_str(), -1, &updateDirStr[0], updateSize, NULL, NULL);
+    updateDirStr.pop_back(); // Remove null terminator
 
-      do {
-          if (wcscmp(findData.cFileName, L".") == 0 || wcscmp(findData.cFileName, L"..") == 0)
-              continue;
+    int destSize = WideCharToMultiByte(CP_UTF8, 0, destDir.c_str(), -1, NULL, 0, NULL, NULL);
+    std::string destDirStr(destSize, 0);
+    WideCharToMultiByte(CP_UTF8, 0, destDir.c_str(), -1, &destDirStr[0], destSize, NULL, NULL);
+    destDirStr.pop_back(); // Remove null terminator
 
-          std::wstring fullPath = path + L"\\" + findData.cFileName;
-          printf("%ls%ls%ls\n", indent.c_str(), findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ? L"[DIR] " : L"", findData.cFileName);
+    int exePathSize = WideCharToMultiByte(CP_UTF8, 0, executable_path, -1, NULL, 0, NULL, NULL);
+    std::string exePathStr(exePathSize, 0);
+    WideCharToMultiByte(CP_UTF8, 0, executable_path, -1, &exePathStr[0], exePathSize, NULL, NULL);
+    exePathStr.pop_back(); // Remove null terminator
 
-          if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-              ListDirectoryContents(fullPath, level + 1);
-          }
-      } while (FindNextFileW(hFind, &findData));
+    const std::string batScript =
+        "@echo off\n"
+        // "echo Updating the application...\n"
+        "timeout /t 2 /nobreak > NUL\n"
+        // "echo Copying files...\n"
+        "xcopy /E /I /Y \"" +
+        updateDirStr + "\\*\" \"" + destDirStr + "\\\"\n"
+                                                 "rmdir /S /Q \"" +
+        updateDirStr + "\"\n" +
+        // "echo Files copied.\n"
+        "timeout /t 1 /nobreak > NUL\n"
+        "start \"\" \"" +
+        exePathStr + "\"\n"
+                     "timeout /t 1 /nobreak > NUL\n"
+                     // "echo Deleting temporary files...\n"
+                     "del update_script.bat\n"
+                     "\"\n"
+                     "exit\n";
 
-      FindClose(hFind);
+    std::ofstream batFile("update_script.bat");
+    batFile << batScript;
+    batFile.close();
+    std::cout << "Temporary .bat created.\n";
   }
 
-  // Add the copyAndReplaceFiles function
-  // Copies and replaces files from sourcePath to destinationPath
-  void copyAndReplaceFiles(const std::wstring& sourcePath, const std::wstring& destinationPath) {
-    WIN32_FIND_DATAW ffd;
-    HANDLE hFind = INVALID_HANDLE_VALUE;
-    std::wstring searchPath = sourcePath + L"\\*";
-    
-    printf("\nScanning directory: %ls\n", sourcePath.c_str());
-    printf("search path %ls\n", searchPath.c_str());
-    
-    hFind = FindFirstFileW(searchPath.c_str(), &ffd);
-    if (hFind == INVALID_HANDLE_VALUE) {
-        printf("FindFirstFile failed for %ls. Error: %lu\n", searchPath.c_str(), GetLastError());
-        return;
+  void runBatFile()
+  {
+    STARTUPINFO si = {sizeof(si)};
+    PROCESS_INFORMATION pi;
+
+    WCHAR cmdLine[] = L"cmd.exe /c update_script.bat";
+    if (CreateProcess(
+            NULL,
+            cmdLine,
+            NULL,
+            NULL,
+            FALSE,
+            CREATE_NO_WINDOW,
+            NULL,
+            NULL,
+            &si,
+            &pi))
+    {
+      CloseHandle(pi.hProcess);
+      CloseHandle(pi.hThread);
     }
-
-    do {
-        if (wcscmp(ffd.cFileName, L".") == 0 || wcscmp(ffd.cFileName, L"..") == 0) {
-            continue;
-        }
-
-        std::wstring srcPath = sourcePath + L"\\" + ffd.cFileName;
-        std::wstring dstPath = destinationPath + L"\\" + ffd.cFileName;
-
-        printf("Processing: %ls\n", srcPath.c_str());
-
-        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            printf("Found directory: %ls\n", ffd.cFileName);
-            
-            // Create destination directory if it doesn't exist
-            if (!CreateDirectoryW(dstPath.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-                printf("Failed to create directory %ls. Error: %lu\n", dstPath.c_str(), GetLastError());
-                continue;
-            }
-            
-            // Recursive call for subdirectories
-            copyAndReplaceFiles(srcPath, dstPath);
-        }
-        else {
-            printf("Replacing file: %ls -> %ls\n", srcPath.c_str(), dstPath.c_str());
-            
-            // Set normal attributes for destination file if it exists
-            SetFileAttributesW(dstPath.c_str(), FILE_ATTRIBUTE_NORMAL);
-            if (!ReplaceFileW(dstPath.c_str(), srcPath.c_str(), NULL,
-                REPLACEFILE_IGNORE_MERGE_ERRORS, NULL, NULL)) {
-                printf("Failed to replace file. Error: %lu\n", GetLastError());
-            }
-        }
-    } while (FindNextFileW(hFind, &ffd) != 0);
-
-    DWORD dwError = GetLastError();
-    if (dwError != ERROR_NO_MORE_FILES) {
-        printf("FindNextFile error. Error: %lu\n", dwError);
+    else
+    {
+      std::cout << "Failed to run the .bat file.\n";
     }
-
-    FindClose(hFind);
-}
+  }
 
   void RestartApp()
   {
@@ -149,61 +131,17 @@ namespace desktop_updater
 
     printf("Executable path: %ls\n", executable_path);
 
-    printf("Copying new version\n");
-
     // Replace the existing copyDirectory lambda with copyAndReplaceFiles function
     std::wstring updateDir = L"update";
     std::wstring destDir = L".";
 
-    copyAndReplaceFiles(updateDir, destDir);
+    // Update createBatFile call with parameters
+    createBatFile(updateDir, destDir, executable_path);
 
-    // Verify that the new executable exists
-    if (!PathFileExistsW(executable_path))
-    {
-      printf("New executable does not exist at path: %ls\n", executable_path);
-      ExitProcess(1);
-    }
-    else
-    {
-      printf("New executable found at path: %ls\n", executable_path);
-    }
+    // 3. .bat dosyasını çalıştır
+    runBatFile();
 
-    printf("Starting new version\n");
-
-    STARTUPINFOW si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    // Set execute permissions
-    SetFileAttributesW(executable_path, FILE_ATTRIBUTE_NORMAL);
-
-    BOOL processResult = CreateProcessW(
-        executable_path, // Application name
-        NULL,            // Command line
-        NULL,            // Process handle not inheritable
-        NULL,            // Thread handle not inheritable
-        FALSE,           // Set handle inheritance to FALSE
-        0,               // No creation flags
-        NULL,            // Use parent's environment block
-        NULL,            // Use parent's starting directory
-        &si,             // Pointer to STARTUPINFO structure
-        &pi              // Pointer to PROCESS_INFORMATION structure
-    );
-
-    if (processResult)
-    {
-      printf("Successfully started new process.\n");
-      CloseHandle(pi.hProcess);
-      CloseHandle(pi.hThread);
-    }
-    else
-    {
-      DWORD dwError = GetLastError();
-      printf("Failed to start new process. Error: %lu\n", dwError);
-    }
-
+    // Exit the current process
     ExitProcess(0);
   }
 
