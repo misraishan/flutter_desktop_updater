@@ -171,6 +171,13 @@ Future<void> main(List<String> args) async {
         "${lastBuildNumberFolder.path}${Platform.pathSeparator}$foundVersion+$foundBuildNumber-$platform",
       ),
     );
+  } else if (platform == "linux") {
+    await copyDirectory(
+      Directory(foundDirectory),
+      Directory(
+        "${lastBuildNumberFolder.path}/$foundVersion+$foundBuildNumber-$platform",
+      ),
+    );
   }
 
   await genFileHashes(

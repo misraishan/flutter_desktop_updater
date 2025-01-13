@@ -77,14 +77,10 @@ Future<List<FileHashModel?>> verifyFileHashes(
 
 // Dizin içindeki tüm dosyaların hash'lerini alıp bir dosyaya yazan fonksiyon
 Future<String> genFileHashes({String? path}) async {
-  path ??= await DesktopUpdater().getExecutablePath();
+  path ??= Platform.resolvedExecutable;
 
   final directoryPath =
-      path?.substring(0, path.lastIndexOf(Platform.pathSeparator));
-
-  if (directoryPath == null) {
-    throw Exception("Desktop Updater: Executable path is null");
-  }
+      path.substring(0, path.lastIndexOf(Platform.pathSeparator));
 
   var dir = Directory(directoryPath);
 

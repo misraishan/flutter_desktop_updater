@@ -2,22 +2,18 @@ import "dart:convert";
 import "dart:io";
 
 import "package:desktop_updater/desktop_updater.dart";
-import "package:desktop_updater/src/app_archive.dart";
 import "package:http/http.dart" as http;
+import "package:path/path.dart" as path;
 
 Future<ItemModel?> versionCheckFunction({
   required String appArchiveUrl,
 }) async {
-  final executablePath = await DesktopUpdater().getExecutablePath();
+  final executablePath = Platform.resolvedExecutable;
 
-  final directoryPath = executablePath?.substring(
+  final directoryPath = executablePath.substring(
     0,
     executablePath.lastIndexOf(Platform.pathSeparator),
   );
-
-  if (directoryPath == null) {
-    throw Exception("Desktop Updater: Executable path is null");
-  }
 
   var dir = Directory(directoryPath);
 
@@ -87,12 +83,23 @@ Future<ItemModel?> versionCheckFunction({
 
     late String? currentVersion;
 
-    await DesktopUpdater().getCurrentVersion().then(
-      (value) {
-        print("Current version: $value");
-        currentVersion = value;
-      },
-    );
+    if (Platform.isLinux) {
+      final exePath = await File("/proc/self/exe").resolveSymbolicLinks();
+        final appPath = path.dirname(exePath);
+        final assetPath = path.join(appPath, "data", "flutter_assets");
+        final versionPath = path.join(assetPath, "version.json");
+        final versionJson = jsonDecode(await File(versionPath).readAsString());
+
+        print("Current version: ${versionJson['build_number']}");
+        currentVersion = versionJson['build_number'];
+    } else {
+      await DesktopUpdater().getCurrentVersion().then(
+        (value) {
+          print("Current version: $value");
+          currentVersion = value;
+        },
+      );
+    }
 
     if (currentVersion == null) {
       throw Exception("Desktop Updater: Current version is null");

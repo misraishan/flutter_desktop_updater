@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:io";
 
 import "package:desktop_updater/desktop_updater.dart";
 import "package:flutter/foundation.dart";
@@ -82,15 +83,12 @@ class _MyAppState extends State<MyApp> {
               ElevatedButton(
                 onPressed: () {
                   final startTime = DateTime.now();
-                  _desktopUpdaterPlugin.generateFileHashes().then(
+                  print(Platform.executable);
+                  print(Platform.resolvedExecutable);
+
+                  _desktopUpdaterPlugin.getExecutablePath().then(
                     (value) {
-                      print(
-                        "File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms",
-                      );
                       print(value);
-                      setState(() {
-                        hashes = value ?? "";
-                      });
                     },
                   );
                 },

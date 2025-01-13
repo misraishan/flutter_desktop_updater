@@ -90,6 +90,10 @@ Future<void> main(List<String> args) async {
     buildDir = Directory(
       "build/macos/Build/Products/Release/$appNamePubspec.app",
     );
+  } else if (platform == "linux") {
+    buildDir = Directory(
+      "build/linux/x64/release/bundle/",
+    );
   }
 
   // final files = await buildDir.list(recursive: true).toList();
@@ -104,7 +108,10 @@ Future<void> main(List<String> args) async {
         "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform";
   } else if (platform == "macos") {
     distPath =
-        "dist${Platform.pathSeparator}$buildNumber${Platform.pathSeparator}$appName-$buildName+$buildNumber-$platform/$appName.app";
+        "dist/$buildNumber/$appName-$buildName+$buildNumber-$platform/$appName.app";
+  } else if (platform == "linux") {
+    distPath =
+        "dist/$buildNumber/$appName-$buildName+$buildNumber-$platform";
   }
 
   // Copy buildDir to distPath, included directory name

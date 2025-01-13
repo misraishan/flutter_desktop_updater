@@ -8,16 +8,12 @@ import "package:http/http.dart" as http;
 Future<List<FileHashModel?>> prepareUpdateAppFunction({
   required String remoteUpdateFolder,
 }) async {
-  final executablePath = await DesktopUpdater().getExecutablePath();
+  final executablePath = Platform.resolvedExecutable;
 
-  final directoryPath = executablePath?.substring(
+  final directoryPath = executablePath.substring(
     0,
     executablePath.lastIndexOf(Platform.pathSeparator),
   );
-
-  if (directoryPath == null) {
-    throw Exception("Desktop Updater: Executable path is null");
-  }
 
   var dir = Directory(directoryPath);
 
