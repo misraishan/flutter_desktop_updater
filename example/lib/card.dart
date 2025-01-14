@@ -1,0 +1,416 @@
+import "dart:async";
+
+import "package:flutter/material.dart";
+
+class UpdateCard extends StatefulWidget {
+  const UpdateCard({super.key});
+
+  @override
+  _UpdateCardState createState() => _UpdateCardState();
+}
+
+class _UpdateCardState extends State<UpdateCard> {
+  bool _isDownloading = false;
+  bool _isDownloaded = false;
+  StreamController<double>? _progressController;
+  double _downloadProgress = 0;
+  final double _downloadSize = 14.5;
+  double _downloadedSize = 0;
+
+  void _startDownload() {
+    setState(() {
+      _isDownloading = true;
+      _downloadProgress = 0.0;
+      _progressController = StreamController<double>();
+    });
+
+    Timer.periodic(const Duration(milliseconds: 25), (timer) {
+      if (_downloadProgress >= 1.0) {
+        timer.cancel();
+        setState(() {
+          _isDownloading = false;
+          _downloadProgress = 1.0;
+          _downloadedSize = _downloadSize;
+          _isDownloaded = true;
+        });
+        return;
+      }
+
+      setState(() {
+        _downloadProgress += 0.01;
+        _downloadedSize = _downloadSize * _downloadProgress;
+      });
+      _progressController?.add(_downloadProgress);
+    });
+  }
+
+  @override
+  void dispose() {
+    _progressController?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxHeight < 94) {
+          return Card.filled(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton.filled(
+                        onPressed: () {},
+                        icon: const Icon(Icons.update),
+                      ),
+                      const SizedBox(width: 16),
+                      Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Update Available",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                              ),
+                              Text(
+                                "Appname 1.0.1 is available",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          return SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Card.filled(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  // color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerLowest,
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Icon(
+                                  Icons.update,
+                                  size: 24,
+                                  opticalSize: 24,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          "Update Available",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                        ),
+                        Text(
+                          "Appname 1.0.1 is available",
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "New version is ready to download, click the button below to start downloading. This will download 14.5 MB of data.",
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (_isDownloading && !_isDownloaded)
+                              Row(
+                                children: [
+                                  FilledButton.icon(
+                                    icon: SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        value: _downloadProgress,
+                                      ),
+                                    ),
+                                    label: Row(
+                                      children: [
+                                        Text(
+                                          "${(_downloadProgress * 100).toInt()}% (${_downloadedSize.toStringAsFixed(2)} MB / ${_downloadSize.toStringAsFixed(2)} MB)",
+                                        ),
+                                      ],
+                                    ),
+                                    onPressed: null,
+                                  ),
+                                ],
+                              )
+                            else if (_isDownloading == false && _isDownloaded)
+                              FilledButton.icon(
+                                icon: const Icon(Icons.restart_alt),
+                                label: const Text("Restart to update"),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text("Restart to update"),
+                                        content: const Text(
+                                          "A restart is required to complete the update installation.\nAny unsaved changes will be lost. Would you like to restart now?",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("Not now"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              // Restart app
+                                            },
+                                            child: const Text("Restart"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              )
+                            else
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  FilledButton.icon(
+                                    icon: const Icon(Icons.download),
+                                    label: const Text("Download"),
+                                    onPressed: _startDownload,
+                                  ),
+                                  const SizedBox(
+                                    width: 8,
+                                  ),
+                                  OutlinedButton.icon(
+                                    icon: const Icon(Icons.close),
+                                    label: const Text("Skip this version"),
+                                    onPressed: () {
+                                      // Handle "Not now" action
+                                    },
+                                  ),
+                                ],
+                              ),
+                            // Release notes
+                            IconButton(
+                              tooltip: "Release notes",
+                              iconSize: 24,
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  showDragHandle: true,
+                                  builder: (context) {
+                                    return SafeArea(
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(22),
+                                          topRight: Radius.circular(22),
+                                        ),
+                                        child: DraggableScrollableSheet(
+                                          expand: false,
+                                          shouldCloseOnMinExtent: false,
+                                          snapSizes: const [0.6, 1],
+                                          initialChildSize: 0.6,
+                                          minChildSize: 0.6,
+                                          snap: true,
+                                          builder: (context, scrollController) {
+                                            return StatefulBuilder(
+                                              builder: (context, setState) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    FocusScope.of(context)
+                                                        .unfocus();
+                                                  },
+                                                  child: Scaffold(
+                                                    backgroundColor: Theme.of(
+                                                      context,
+                                                    )
+                                                        .colorScheme
+                                                        .surfaceContainerLow,
+                                                    body: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 16,
+                                                      ),
+                                                      child: CustomScrollView(
+                                                        controller:
+                                                            scrollController,
+                                                        slivers: <Widget>[
+                                                          SliverList(
+                                                            delegate:
+                                                                SliverChildListDelegate([
+                                                              Text(
+                                                                "Release notes",
+                                                                style: Theme.of(
+                                                                  context,
+                                                                )
+                                                                    .textTheme
+                                                                    .bodyLarge
+                                                                    ?.copyWith(
+                                                                      color: Theme
+                                                                              .of(
+                                                                        context,
+                                                                      )
+                                                                          .colorScheme
+                                                                          .onSurface,
+                                                                    ),
+                                                              ),
+                                                              const SizedBox(
+                                                                height: 16,
+                                                              ),
+                                                              Text(
+                                                                "Version 1.0.1\n- Fixed a bug where the app would crash on startup\n- Added a new feature to the app\n- Improved performance",
+                                                                style: Theme.of(
+                                                                  context,
+                                                                )
+                                                                    .textTheme
+                                                                    .bodyMedium
+                                                                    ?.copyWith(
+                                                                      color: Theme
+                                                                              .of(
+                                                                        context,
+                                                                      )
+                                                                          .colorScheme
+                                                                          .onSurfaceVariant,
+                                                                    ),
+                                                              ),
+                                                            ]),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    bottomNavigationBar:
+                                                        Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        bottom: 8,
+                                                      ),
+                                                      child: Container(
+                                                        margin: EdgeInsets.zero,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              const BorderRadius
+                                                                  .all(
+                                                            Radius.circular(12),
+                                                          ),
+                                                          color: Theme.of(
+                                                            context,
+                                                          )
+                                                              .colorScheme
+                                                              .surfaceContainerLow,
+                                                        ),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                          horizontal: 8,
+                                                        ),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                  context,
+                                                                ).pop();
+                                                              },
+                                                              child: const Text(
+                                                                "Close",
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              icon: const Icon(Icons.description_outlined),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+}
