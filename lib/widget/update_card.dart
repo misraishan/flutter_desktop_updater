@@ -1,25 +1,11 @@
-import "package:desktop_updater/updater_controller.dart";
-import "package:flutter/foundation.dart";
+import "package:desktop_updater/desktop_updater.dart";
 import "package:flutter/material.dart";
 
 class UpdateCard extends StatefulWidget {
-  const UpdateCard({super.key, required this.controller});
-
-  final DesktopUpdaterController controller;
+  const UpdateCard({super.key});
 
   @override
   _UpdateCardState createState() => _UpdateCardState();
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(
-      DiagnosticsProperty<DesktopUpdaterController>(
-        "controller",
-        controller,
-      ),
-    );
-  }
 }
 
 class _UpdateCardState extends State<UpdateCard> {
@@ -27,6 +13,10 @@ class _UpdateCardState extends State<UpdateCard> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final desktopInheritedNotifier =
+            DesktopUpdaterInheritedNotifier.of(context);
+        final notifier = desktopInheritedNotifier?.notifier;
+
         if (constraints.maxHeight < 100) {
           return Card.filled(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -138,7 +128,7 @@ class _UpdateCardState extends State<UpdateCard> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "New version is ready to download, click the button below to start downloading. This will download ${((widget.controller.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB of data.",
+                          "New version is ready to download, click the button below to start downloading. This will download ${((notifier?.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB of data.",
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Theme.of(context)
@@ -150,8 +140,8 @@ class _UpdateCardState extends State<UpdateCard> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (widget.controller.isDownloading &&
-                                !widget.controller.isDownloaded)
+                            if ((notifier?.isDownloading ?? false) &&
+                                !(notifier?.isDownloaded ?? false))
                               Row(
                                 children: [
                                   FilledButton.icon(
@@ -159,14 +149,13 @@ class _UpdateCardState extends State<UpdateCard> {
                                       height: 18,
                                       width: 18,
                                       child: CircularProgressIndicator(
-                                        value:
-                                            widget.controller.downloadProgress,
+                                        value: notifier?.downloadProgress,
                                       ),
                                     ),
                                     label: Row(
                                       children: [
                                         Text(
-                                          "${(widget.controller.downloadProgress * 100).toInt()}% (${(widget.controller.downloadedSize / 1024).toStringAsFixed(2)} MB / ${((widget.controller.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB)",
+                                          "${((notifier?.downloadProgress ?? 0.0) * 100).toInt()}% (${((notifier?.downloadedSize ?? 0.0) / 1024).toStringAsFixed(2)} MB / ${((notifier?.downloadSize ?? 0.0) / 1024).toStringAsFixed(2)} MB)",
                                         ),
                                       ],
                                     ),
@@ -174,8 +163,8 @@ class _UpdateCardState extends State<UpdateCard> {
                                   ),
                                 ],
                               )
-                            else if (widget.controller.isDownloading == false &&
-                                widget.controller.isDownloaded)
+                            else if (notifier?.isDownloading == false &&
+                                (notifier?.isDownloaded ?? false))
                               FilledButton.icon(
                                 icon: const Icon(Icons.restart_alt),
                                 label: const Text("Restart to update"),
@@ -197,7 +186,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              widget.controller.restartApp();
+                                              notifier?.restartApp();
                                             },
                                             child: const Text("Restart"),
                                           ),
@@ -214,7 +203,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                   FilledButton.icon(
                                     icon: const Icon(Icons.download),
                                     label: const Text("Download"),
-                                    onPressed: widget.controller.downloadUpdate,
+                                    onPressed: notifier?.downloadUpdate,
                                   ),
                                   const SizedBox(
                                     width: 8,
@@ -296,8 +285,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                                                 height: 16,
                                                               ),
                                                               Text(
-                                                                widget.controller
-                                                                        .releaseNotes
+                                                                notifier?.releaseNotes
                                                                         ?.map(
                                                                           (e) =>
                                                                               "• ${e?.message}\n",

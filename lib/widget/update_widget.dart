@@ -58,15 +58,13 @@ class _DesktopUpdateWidgetState extends State<DesktopUpdateWidget> {
                   // Empty sliver empty to avoid error
                   return const SliverToBoxAdapter();
                 } else {
-                  return SliverAppBar.large(
+                  return const SliverAppBar.large(
                     expandedHeight: 300,
                     collapsedHeight: 92,
                     pinned: false,
                     flexibleSpace: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: UpdateCard(
-                        controller: widget.controller,
-                      ),
+                      padding: EdgeInsets.only(top: 16),
+                      child: UpdateCard(),
                     ),
                   );
                 }
