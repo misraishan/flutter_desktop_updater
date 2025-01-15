@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class AppArchiveModel {
   AppArchiveModel({
     required this.appName,
@@ -35,6 +36,7 @@ class ItemModel {
     required this.mandatory,
     required this.url,
     required this.platform,
+    this.changedFiles,
   });
 
   factory ItemModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class ItemModel {
   final bool mandatory;
   final String url;
   final String platform;
+  final List<FileHashModel?>? changedFiles;
 
   Map<String, dynamic> toJson() {
     return {
@@ -68,6 +71,28 @@ class ItemModel {
       "url": url,
       "platform": platform,
     };
+  }
+
+  ItemModel copyWith({
+    String? version,
+    int? shortVersion,
+    List<ChangeModel>? changes,
+    String? date,
+    bool? mandatory,
+    String? url,
+    String? platform,
+    List<FileHashModel?>? changedFiles,
+  }) {
+    return ItemModel(
+      version: version ?? this.version,
+      shortVersion: shortVersion ?? this.shortVersion,
+      changes: changes ?? this.changes,
+      date: date ?? this.date,
+      mandatory: mandatory ?? this.mandatory,
+      url: url ?? this.url,
+      platform: platform ?? this.platform,
+      changedFiles: changedFiles ?? changedFiles,
+    );
   }
 }
 

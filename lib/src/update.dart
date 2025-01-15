@@ -3,13 +3,12 @@ import "dart:io";
 
 import "package:desktop_updater/desktop_updater.dart";
 import "package:desktop_updater/src/download.dart";
-import "package:desktop_updater/src/file_hash.dart";
-import "package:http/http.dart" as http;
 
 /// Modified updateAppFunction to return a stream of UpdateProgress.
 /// The stream emits total kilobytes, received kilobytes, and the currently downloading file's name.
 Future<Stream<UpdateProgress>> updateAppFunction({
   required String remoteUpdateFolder,
+  required List<FileHashModel?> changes,
 }) async {
   final executablePath = Platform.resolvedExecutable;
 
@@ -28,47 +27,6 @@ Future<Stream<UpdateProgress>> updateAppFunction({
 
   try {
     if (await dir.exists()) {
-      final tempDir = await Directory.systemTemp.createTemp("desktop_updater");
-
-      final client = http.Client();
-
-      final newHashFileUrl = "$remoteUpdateFolder/hashes.json";
-      final newHashFileRequest = http.Request("GET", Uri.parse(newHashFileUrl));
-      final newHashFileResponse = await client.send(newHashFileRequest);
-
-      if (newHashFileResponse.statusCode != 200) {
-        client.close();
-        throw const HttpException("Failed to download hashes.json");
-      }
-
-      final outputFile =
-          File("${tempDir.path}${Platform.pathSeparator}hashes.json");
-      final sink = outputFile.openWrite();
-
-      await newHashFileResponse.stream.listen(
-        sink.add,
-        onDone: () async {
-          await sink.close();
-          client.close();
-        },
-        onError: (e) async {
-          await sink.close();
-          client.close();
-          throw e;
-        },
-        cancelOnError: true,
-      ).asFuture();
-
-      final oldHashFilePath = await genFileHashes();
-      final newHashFilePath = outputFile.path;
-
-      print("Old hashes file: $oldHashFilePath");
-
-      final changes = await verifyFileHashes(
-        oldHashFilePath,
-        newHashFilePath,
-      );
-
       if (changes.isEmpty) {
         print("No updates required.");
         await responseStream.close();

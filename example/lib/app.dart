@@ -1,5 +1,5 @@
 import "package:desktop_updater/desktop_updater.dart";
-import "package:desktop_updater_example/update_sliver_widget.dart";
+import "package:desktop_updater/updater_controller.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -20,10 +20,18 @@ class _HomePageState extends State<HomePage> {
   ItemModel? appArchiveItem;
   UpdateProgress? updateProgress;
 
+  late DesktopUpdaterController _desktopUpdaterController;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
+
+    _desktopUpdaterController = DesktopUpdaterController(
+      appArchiveUrl: Uri.parse(
+        "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/app-archive.json",
+      ),
+    );
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -55,6 +63,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Plugin example app"),
       ),
       body: DesktopUpdateWidget(
+        controller: _desktopUpdaterController,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Center(
@@ -67,92 +76,6 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: _desktopUpdaterPlugin.restartApp,
                   child: const Text("Restart App"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _desktopUpdaterPlugin.sayHello().then(print);
-                  },
-                  child: const Text("Say Hello"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final startTime = DateTime.now();
-                    _desktopUpdaterPlugin.generateFileHashes().then(
-                      (value) {
-                        print(
-                          "File hashes generated in ${DateTime.now().difference(startTime).inMilliseconds} ms",
-                        );
-                        print(value);
-                        setState(() {
-                          hashes = value ?? "";
-                        });
-                      },
-                    );
-                  },
-                  child: const Text("Get Executable Path"),
-                ),
-                SelectableText("Hashes path:\n$hashes\n"),
-                ElevatedButton(
-                  onPressed: () {
-                    final startTime = DateTime.now();
-                    setState(() {
-                      changedFiles = "";
-                      length = "";
-                    });
-
-                    _desktopUpdaterPlugin
-                        .prepareUpdateApp(
-                      remoteUpdateFolder:
-                          "https://s3.eu-central-1.amazonaws.com/www.monolib.net/archive/desktop_updater/0.1.6%2B7-macos",
-                    )
-                        .then(
-                      (value) {
-                        print(
-                          "File hashes verified in ${DateTime.now().difference(startTime).inMilliseconds} ms",
-                        );
-
-                        for (final file in value) {
-                          if (file != null) {
-                            print("${file.filePath} - ${file.length}b");
-
-                            setState(() {
-                              changedFiles +=
-                                  "${file.filePath} - ${file.length}b\n";
-                            });
-                          }
-                        }
-
-                        // Calculate total length of all files
-                        print(
-                          value.fold<int>(
-                            0,
-                            (previousValue, element) =>
-                                previousValue + element!.length,
-                          ),
-                        );
-
-                        setState(() {
-                          length = value
-                              .fold<int>(
-                                0,
-                                (previousValue, element) =>
-                                    previousValue + element!.length,
-                              )
-                              .toString();
-                        });
-                      },
-                    );
-                  },
-                  child: const Text("Verify File Hash"),
-                ),
-                SizedBox(
-                  height: 100,
-                  child: ListView(
-                    children: [
-                      Text("Total length of changed files: $length\n"),
-                      Text("Changed files:\n$changedFiles"),
-                    ],
-                  ),
                 ),
                 OutlinedButton(
                   onPressed: () {
@@ -177,11 +100,10 @@ class _HomePageState extends State<HomePage> {
                 SelectableText("App archive item:\n${appArchiveItem?.url}\n"),
                 FilledButton(
                   onPressed: () {
-                    _desktopUpdaterPlugin
-                        .updateApp(
+                    _desktopUpdaterPlugin.updateApp(
                       remoteUpdateFolder: appArchiveItem?.url ?? "",
-                    )
-                        .then(
+                      changedFiles: [],
+                    ).then(
                       (value) {
                         value.listen(
                           (event) {

@@ -2,6 +2,7 @@ import "dart:convert";
 import "dart:io";
 
 import "package:desktop_updater/desktop_updater.dart";
+import "package:desktop_updater/src/file_hash.dart";
 import "package:http/http.dart" as http;
 import "package:path/path.dart" as path;
 
@@ -28,6 +29,8 @@ Future<ItemModel?> versionCheckFunction({
 
     // Download oldHashFilePath
     final client = http.Client();
+
+    print("Using url: $appArchiveUrl");
 
     final appArchive = http.Request("GET", Uri.parse(appArchiveUrl));
     final appArchiveResponse = await client.send(appArchive);
@@ -85,13 +88,13 @@ Future<ItemModel?> versionCheckFunction({
 
     if (Platform.isLinux) {
       final exePath = await File("/proc/self/exe").resolveSymbolicLinks();
-        final appPath = path.dirname(exePath);
-        final assetPath = path.join(appPath, "data", "flutter_assets");
-        final versionPath = path.join(assetPath, "version.json");
-        final versionJson = jsonDecode(await File(versionPath).readAsString());
+      final appPath = path.dirname(exePath);
+      final assetPath = path.join(appPath, "data", "flutter_assets");
+      final versionPath = path.join(assetPath, "version.json");
+      final versionJson = jsonDecode(await File(versionPath).readAsString());
 
-        print("Current version: ${versionJson['build_number']}");
-        currentVersion = versionJson['build_number'];
+      print("Current version: ${versionJson['build_number']}");
+      currentVersion = versionJson["build_number"];
     } else {
       await DesktopUpdater().getCurrentVersion().then(
         (value) {
@@ -107,7 +110,58 @@ Future<ItemModel?> versionCheckFunction({
 
     if (latestVersion.shortVersion > int.parse(currentVersion!)) {
       print("New version found: ${latestVersion.version}");
-      return latestVersion;
+
+      // calculate totalSize
+      final tempDir = await Directory.systemTemp.createTemp("desktop_updater");
+
+      final client = http.Client();
+
+      print("Downloading hashes file");
+
+      final newHashFileUrl = "${latestVersion.url}/hashes.json";
+      final newHashFileRequest = http.Request("GET", Uri.parse(newHashFileUrl));
+      final newHashFileResponse = await client.send(newHashFileRequest);
+
+      if (newHashFileResponse.statusCode != 200) {
+        client.close();
+        throw const HttpException("Failed to download hashes.json");
+      }
+
+      final outputFile =
+          File("${tempDir.path}${Platform.pathSeparator}hashes.json");
+      final sink = outputFile.openWrite();
+
+      await newHashFileResponse.stream.listen(
+        sink.add,
+        onDone: () async {
+          await sink.close();
+          client.close();
+        },
+        onError: (e) async {
+          await sink.close();
+          client.close();
+          throw e;
+        },
+        cancelOnError: true,
+      ).asFuture();
+
+      final oldHashFilePath = await genFileHashes();
+      final newHashFilePath = outputFile.path;
+
+      print("Old hashes file: $oldHashFilePath");
+
+      final changedFiles = await verifyFileHashes(
+        oldHashFilePath,
+        newHashFilePath,
+      );
+
+      if (changedFiles.isEmpty) {
+        print("No updates required.");
+      }
+
+      return latestVersion.copyWith(
+        changedFiles: changedFiles,
+      );
     } else {
       print("No new version found");
     }

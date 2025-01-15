@@ -1,60 +1,33 @@
-import "dart:async";
-
+import "package:desktop_updater/updater_controller.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 
 class UpdateCard extends StatefulWidget {
-  const UpdateCard({super.key});
+  const UpdateCard({super.key, required this.controller});
+
+  final DesktopUpdaterController controller;
 
   @override
   _UpdateCardState createState() => _UpdateCardState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(
+      DiagnosticsProperty<DesktopUpdaterController>(
+        "controller",
+        controller,
+      ),
+    );
+  }
 }
 
 class _UpdateCardState extends State<UpdateCard> {
-  bool _isDownloading = false;
-  bool _isDownloaded = false;
-  StreamController<double>? _progressController;
-  double _downloadProgress = 0;
-  final double _downloadSize = 14.5;
-  double _downloadedSize = 0;
-
-  void _startDownload() {
-    setState(() {
-      _isDownloading = true;
-      _downloadProgress = 0.0;
-      _progressController = StreamController<double>();
-    });
-
-    Timer.periodic(const Duration(milliseconds: 25), (timer) {
-      if (_downloadProgress >= 1.0) {
-        timer.cancel();
-        setState(() {
-          _isDownloading = false;
-          _downloadProgress = 1.0;
-          _downloadedSize = _downloadSize;
-          _isDownloaded = true;
-        });
-        return;
-      }
-
-      setState(() {
-        _downloadProgress += 0.01;
-        _downloadedSize = _downloadSize * _downloadProgress;
-      });
-      _progressController?.add(_downloadProgress);
-    });
-  }
-
-  @override
-  void dispose() {
-    _progressController?.close();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxHeight < 94) {
+        if (constraints.maxHeight < 100) {
           return Card.filled(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             child: Padding(
@@ -165,7 +138,7 @@ class _UpdateCardState extends State<UpdateCard> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "New version is ready to download, click the button below to start downloading. This will download 14.5 MB of data.",
+                          "New version is ready to download, click the button below to start downloading. This will download ${((widget.controller.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB of data.",
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Theme.of(context)
@@ -177,7 +150,8 @@ class _UpdateCardState extends State<UpdateCard> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (_isDownloading && !_isDownloaded)
+                            if (widget.controller.isDownloading &&
+                                !widget.controller.isDownloaded)
                               Row(
                                 children: [
                                   FilledButton.icon(
@@ -185,13 +159,14 @@ class _UpdateCardState extends State<UpdateCard> {
                                       height: 18,
                                       width: 18,
                                       child: CircularProgressIndicator(
-                                        value: _downloadProgress,
+                                        value:
+                                            widget.controller.downloadProgress,
                                       ),
                                     ),
                                     label: Row(
                                       children: [
                                         Text(
-                                          "${(_downloadProgress * 100).toInt()}% (${_downloadedSize.toStringAsFixed(2)} MB / ${_downloadSize.toStringAsFixed(2)} MB)",
+                                          "${(widget.controller.downloadProgress * 100).toInt()}% (${(widget.controller.downloadedSize / 1024).toStringAsFixed(2)} MB / ${((widget.controller.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB)",
                                         ),
                                       ],
                                     ),
@@ -199,7 +174,8 @@ class _UpdateCardState extends State<UpdateCard> {
                                   ),
                                 ],
                               )
-                            else if (_isDownloading == false && _isDownloaded)
+                            else if (widget.controller.isDownloading == false &&
+                                widget.controller.isDownloaded)
                               FilledButton.icon(
                                 icon: const Icon(Icons.restart_alt),
                                 label: const Text("Restart to update"),
@@ -221,7 +197,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                           ),
                                           TextButton(
                                             onPressed: () {
-                                              // Restart app
+                                              widget.controller.restartApp();
                                             },
                                             child: const Text("Restart"),
                                           ),
@@ -238,7 +214,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                   FilledButton.icon(
                                     icon: const Icon(Icons.download),
                                     label: const Text("Download"),
-                                    onPressed: _startDownload,
+                                    onPressed: widget.controller.downloadUpdate,
                                   ),
                                   const SizedBox(
                                     width: 8,
@@ -320,7 +296,14 @@ class _UpdateCardState extends State<UpdateCard> {
                                                                 height: 16,
                                                               ),
                                                               Text(
-                                                                "Version 1.0.1\n- Fixed a bug where the app would crash on startup\n- Added a new feature to the app\n- Improved performance",
+                                                                widget.controller
+                                                                        .releaseNotes
+                                                                        ?.map(
+                                                                          (e) =>
+                                                                              "• ${e?.message}\n",
+                                                                        )
+                                                                        .join() ??
+                                                                    "",
                                                                 style: Theme.of(
                                                                   context,
                                                                 )

@@ -8,8 +8,12 @@ import "package:desktop_updater/src/version_check.dart";
 
 export "package:desktop_updater/src/app_archive.dart";
 export "package:desktop_updater/src/update_progress.dart";
+export "package:desktop_updater/widget/update_widget.dart";
+
+export "desktop_updater_inherited_widget.dart";
 
 class DesktopUpdater {
+  DesktopUpdater();
   Future<String?> getPlatformVersion() {
     return DesktopUpdaterPlatform.instance.getPlatformVersion();
   }
@@ -40,8 +44,12 @@ class DesktopUpdater {
 
   Future<Stream<UpdateProgress>> updateApp({
     required String remoteUpdateFolder,
+    required List<FileHashModel?> changedFiles,
   }) {
-    return updateAppFunction(remoteUpdateFolder: remoteUpdateFolder);
+    return updateAppFunction(
+      remoteUpdateFolder: remoteUpdateFolder,
+      changes: changedFiles,
+    );
   }
 
   Future<List<FileHashModel?>> prepareUpdateApp({
