@@ -214,28 +214,45 @@ class _UpdateCardState extends State<UpdateCard> {
                                 (notifier?.isDownloaded ?? false))
                               FilledButton.icon(
                                 icon: const Icon(Icons.restart_alt),
-                                label: const Text("Restart to update"),
+                                label: Text(
+                                  notifier?.getLocalization?.restartText ??
+                                      "Restart to update",
+                                ),
                                 onPressed: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
-                                        title: const Text("Restart to update"),
-                                        content: const Text(
-                                          "A restart is required to complete the update installation.\nAny unsaved changes will be lost. Would you like to restart now?",
+                                        title: Text(
+                                          notifier?.getLocalization
+                                                  ?.warningTitleText ??
+                                              "Are you sure?",
+                                        ),
+                                        content: Text(
+                                          notifier?.getLocalization
+                                                  ?.restartWarningText ??
+                                              "A restart is required to complete the update installation.\nAny unsaved changes will be lost. Would you like to restart now?",
                                         ),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
-                                            child: const Text("Not now"),
+                                            child: Text(
+                                              notifier?.getLocalization
+                                                      ?.warningCancelText ??
+                                                  "Not now",
+                                            ),
                                           ),
                                           TextButton(
                                             onPressed: () {
                                               notifier?.restartApp();
                                             },
-                                            child: const Text("Restart"),
+                                            child: Text(
+                                              notifier?.getLocalization
+                                                      ?.warningConfirmText ??
+                                                  "Restart",
+                                            ),
                                           ),
                                         ],
                                       );
@@ -259,7 +276,7 @@ class _UpdateCardState extends State<UpdateCard> {
                                     icon: const Icon(Icons.close),
                                     label: const Text("Skip this version"),
                                     onPressed: () {
-                                      // Handle "Not now" action
+                                      notifier?.makeSkipUpdate();
                                     },
                                   ),
                                 ],

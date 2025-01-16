@@ -54,11 +54,20 @@ class DesktopUpdaterController extends ChangeNotifier {
   List<ChangeModel?>? _releaseNotes;
   List<ChangeModel?>? get releaseNotes => _releaseNotes;
 
+  bool _skipUpdate = false;
+  bool get skipUpdate => _skipUpdate;
+
   final _plugin = DesktopUpdater();
 
   void init(Uri url) {
     _appArchiveUrl = url;
     checkVersion();
+    notifyListeners();
+  }
+
+  void makeSkipUpdate() {
+    _skipUpdate = true;
+    print("Skip update: $_skipUpdate");
     notifyListeners();
   }
 

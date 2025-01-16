@@ -54,7 +54,8 @@ class _DesktopUpdateWidgetState extends State<DesktopUpdateWidget> {
                     DesktopUpdaterInheritedNotifier.of(context);
                 final notifier = desktopInheritedNotifier?.notifier;
 
-                if ((notifier?.needUpdate ?? false) == false) {
+                if (((notifier?.needUpdate ?? false) == false) ||
+                    (notifier?.skipUpdate ?? false)) {
                   // Empty sliver empty to avoid error
                   return const SliverToBoxAdapter();
                 } else {

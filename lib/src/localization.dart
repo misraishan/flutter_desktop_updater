@@ -6,6 +6,8 @@
 /// - newVersionLongText
 /// - restartText
 /// - restartWarningText
+/// - warningCancelText
+/// - warningConfirmText
 class DesktopUpdateLocalization {
   /// constructor
   const DesktopUpdateLocalization({
@@ -13,7 +15,10 @@ class DesktopUpdateLocalization {
     this.newVersionAvailableText,
     this.newVersionLongText,
     this.restartText,
+    this.warningTitleText,
     this.restartWarningText,
+    this.warningCancelText,
+    this.warningConfirmText,
   });
 
   /// Default: "Update available"
@@ -32,8 +37,17 @@ class DesktopUpdateLocalization {
   /// Default: "Restart to update"
   final String? restartText;
 
+  /// Default: "Are you sure?"
+  final String? warningTitleText;
+
   /// Default: "A restart is required to complete the update installation.\nAny unsaved changes will be lost. Would you like to restart now?"
   final String? restartWarningText;
+
+  /// Default: "Not now"
+  final String? warningCancelText;
+
+  /// Default: "Restart"
+  final String? warningConfirmText;
 }
 
 String? getLocalizedString(String? key, List<dynamic> args) {
