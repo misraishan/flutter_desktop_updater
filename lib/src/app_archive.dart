@@ -37,6 +37,7 @@ class ItemModel {
     required this.url,
     required this.platform,
     this.changedFiles,
+    this.appName,
   });
 
   factory ItemModel.fromJson(Map<String, dynamic> json) {
@@ -60,6 +61,7 @@ class ItemModel {
   final String url;
   final String platform;
   final List<FileHashModel?>? changedFiles;
+  final String? appName;
 
   Map<String, dynamic> toJson() {
     return {
@@ -82,6 +84,7 @@ class ItemModel {
     String? url,
     String? platform,
     List<FileHashModel?>? changedFiles,
+    String? appName,
   }) {
     return ItemModel(
       version: version ?? this.version,
@@ -92,6 +95,7 @@ class ItemModel {
       url: url ?? this.url,
       platform: platform ?? this.platform,
       changedFiles: changedFiles ?? changedFiles,
+      appName: appName ?? this.appName,
     );
   }
 }

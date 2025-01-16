@@ -40,7 +40,9 @@ class _UpdateCardState extends State<UpdateCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Update Available",
+                                notifier?.getLocalization
+                                        ?.updateAvailableText ??
+                                    "Update Available",
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyLarge
@@ -51,7 +53,22 @@ class _UpdateCardState extends State<UpdateCard> {
                                     ),
                               ),
                               Text(
-                                "Appname 1.0.1 is available",
+                                getLocalizedString(
+                                      notifier?.getLocalization
+                                          ?.newVersionAvailableText,
+                                      [
+                                        notifier?.appName,
+                                        notifier?.appVersion,
+                                      ],
+                                    ) ??
+                                    (getLocalizedString(
+                                      "{} {} is available",
+                                      [
+                                        notifier?.appName,
+                                        notifier?.appVersion,
+                                      ],
+                                    )) ??
+                                    "",
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -109,7 +126,8 @@ class _UpdateCardState extends State<UpdateCard> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          "Update Available",
+                          notifier?.getLocalization?.updateAvailableText ??
+                              "Update Available",
                           style: Theme.of(context)
                               .textTheme
                               .bodyLarge
@@ -118,7 +136,22 @@ class _UpdateCardState extends State<UpdateCard> {
                               ),
                         ),
                         Text(
-                          "Appname 1.0.1 is available",
+                          getLocalizedString(
+                                notifier
+                                    ?.getLocalization?.newVersionAvailableText,
+                                [
+                                  notifier?.appName,
+                                  notifier?.appVersion,
+                                ],
+                              ) ??
+                              (getLocalizedString(
+                                "{} {} is available",
+                                [
+                                  notifier?.appName,
+                                  notifier?.appVersion,
+                                ],
+                              )) ??
+                              "",
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Theme.of(context)
@@ -128,7 +161,21 @@ class _UpdateCardState extends State<UpdateCard> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "New version is ready to download, click the button below to start downloading. This will download ${((notifier?.downloadSize ?? 0) / 1024).toStringAsFixed(2)} MB of data.",
+                          getLocalizedString(
+                                notifier?.getLocalization?.newVersionLongText,
+                                [
+                                  notifier?.appName,
+                                  notifier?.appVersion,
+                                ],
+                              ) ??
+                              (getLocalizedString(
+                                "New version is ready to download, click the button below to start downloading. This will download {} MB of data.",
+                                [
+                                  ((notifier?.downloadSize ?? 0) / 1024)
+                                      .toStringAsFixed(2),
+                                ],
+                              )) ??
+                              "",
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: Theme.of(context)

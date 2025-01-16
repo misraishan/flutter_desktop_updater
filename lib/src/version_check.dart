@@ -161,6 +161,7 @@ Future<ItemModel?> versionCheckFunction({
 
       return latestVersion.copyWith(
         changedFiles: changedFiles,
+        appName: appArchiveDecoded.appName,
       );
     } else {
       print("No new version found");

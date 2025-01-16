@@ -4,11 +4,21 @@ import "package:flutter/material.dart";
 class DesktopUpdaterController extends ChangeNotifier {
   DesktopUpdaterController({
     required Uri? appArchiveUrl,
+    this.localization,
   }) {
     if (appArchiveUrl != null) {
       init(appArchiveUrl);
     }
   }
+
+  DesktopUpdateLocalization? localization;
+  DesktopUpdateLocalization? get getLocalization => localization;
+
+  String? _appName;
+  String? get appName => _appName;
+
+  String? _appVersion;
+  String? get appVersion => _appVersion;
 
   Uri? _appArchiveUrl;
   Uri? get appArchiveUrl => _appArchiveUrl;
@@ -79,6 +89,8 @@ class DesktopUpdaterController extends ChangeNotifier {
       // Get changed files liste
       _changedFiles = versionResponse?.changedFiles;
       _releaseNotes = versionResponse?.changes;
+      _appName = versionResponse?.appName;
+      _appVersion = versionResponse?.version;
 
       print("Need update: $_needUpdate");
 
