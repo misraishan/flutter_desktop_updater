@@ -1,7 +1,7 @@
 name: desktop_updater
-description: "A new Flutter plugin project."
-version: 0.0.1
-homepage: null
+description: "Flutter desktop updater plugin, supports Windows, MacOS and Linux. It can download and install updates for your desktop application. Github, Gitlab and local file systems, s3 are supported"
+version: 1.0.0
+homepage: "www.monolib.net"
 
 environment:
   sdk: ^3.6.0
