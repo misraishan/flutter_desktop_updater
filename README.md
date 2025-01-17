@@ -4,6 +4,8 @@ This Flutter plugin supports desktop platforms including macOS, Windows, and Lin
 # How does it work?
 This plugin is a platform-specific solution that executes native code tailored to each supported platform. Additionally, it includes a built-in update interface that can be seamlessly integrated into your application.
 
+![flutter_desktop_updater](https://github.com/user-attachments/assets/b05d9a13-0f44-4213-b3bd-58e07c18226d)
+
 ## Getting Started
 Add dependency to your `pubspec.yaml`:
 ```
