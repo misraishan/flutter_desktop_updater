@@ -9,7 +9,7 @@ Add dependency to your `pubspec.yaml`:
 ```
 dependencies:
   ...
-  desktop_updater: ^1.0.0
+  desktop_updater: ^1.0.1
 ```
 
 Install as CLI, 
