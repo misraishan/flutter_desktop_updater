@@ -24,6 +24,18 @@ class _HomePageState extends State<HomePage> {
       appArchiveUrl: Uri.parse(
         "https://www.yoursite.com/app-archive.json",
       ),
+      localization: const DesktopUpdateLocalization(
+        updateAvailableText: "Update available",
+        newVersionAvailableText: "{} {} is available",
+        newVersionLongText:
+            "New version is ready to download, click the button below to start downloading. This will download {} MB of data.",
+        restartText: "Restart to update",
+        warningTitleText: "Are you sure?",
+        restartWarningText:
+            "A restart is required to complete the update installation.\nAny unsaved changes will be lost. Would you like to restart now?",
+        warningCancelText: "Not now",
+        warningConfirmText: "Restart",
+      ),
     );
   }
 
