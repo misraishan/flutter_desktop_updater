@@ -1,4 +1,4 @@
-# 1.0.2
+## 1.0.2
 
 * Lower macOS platform requirement to 10.14
 * Add DesktopUpdateSliver widget
