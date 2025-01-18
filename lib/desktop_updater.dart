@@ -9,6 +9,7 @@ import "package:desktop_updater/src/version_check.dart";
 export "package:desktop_updater/src/app_archive.dart";
 export "package:desktop_updater/src/localization.dart";
 export "package:desktop_updater/src/update_progress.dart";
+export "package:desktop_updater/widget/update_sliver.dart";
 export "package:desktop_updater/widget/update_widget.dart";
 
 export "desktop_updater_inherited_widget.dart";

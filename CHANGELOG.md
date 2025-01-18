@@ -1,3 +1,9 @@
+# 1.0.2
+
+* Lower macOS platform requirement to 10.14
+* Add DesktopUpdateSliver widget
+* Update version to 1.0.2
+
 ## 1.0.1
 
 * Add repository link to pubspec.yaml

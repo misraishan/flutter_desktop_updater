@@ -11,7 +11,7 @@ Add dependency to your `pubspec.yaml`:
 ```
 dependencies:
   ...
-  desktop_updater: ^1.0.1
+  desktop_updater: ^1.0.2
 ```
 
 Install as CLI, 
@@ -62,6 +62,34 @@ Then wrap your home page with `DesktopUpdater` widget, under the Scaffold widget
             ),
         ),
       ),
+    );
+}
+```
+
+there is also sliver for custom scroll view, you can use `DesktopUpdateSliver` widget.
+
+```dart
+@override
+Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+        title: const Text("Your App Home Page"),
+        ),
+        body: CustomScrollView(
+            slivers: <Widget>[
+                DesktopUpdateSliver(
+                    controller: _desktopUpdaterController,
+                ),
+                SliverList(
+                    delegate: SliverChildListDelegate(
+                    [
+                        const Text(
+                        'Hello World!',
+                        ),
+                    ],
+                ),
+            ],
+        ),
     );
 }
 ```

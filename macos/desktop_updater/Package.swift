@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "desktop_updater",
     platforms: [
-        .macOS("10.15")
+        .macOS("10.14")
     ],
     products: [
         .library(name: "desktop-updater", targets: ["desktop_updater"])
