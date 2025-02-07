@@ -95,7 +95,8 @@ Widget build(BuildContext context) {
 ```
 
 You can use this directly as a card for custom purposes. While you cannot modify the scaffold background in `DesktopUpdateSliver` or `DesktopUpdateWidget`, you can adjust colors and use it anywhere as needed
-```
+```dart
+@override
 Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.blue,
