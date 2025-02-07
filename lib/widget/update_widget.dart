@@ -42,48 +42,47 @@ class _DesktopUpdateWidgetState extends State<DesktopUpdateWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        primary: false,
-        slivers: <Widget>[
-          DesktopUpdaterInheritedNotifier(
-            controller: widget.controller,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                final desktopInheritedNotifier =
-                    DesktopUpdaterInheritedNotifier.of(context);
-                final notifier = desktopInheritedNotifier?.notifier;
+    return CustomScrollView(
+      primary: false,
+      slivers: <Widget>[
+        DesktopUpdaterInheritedNotifier(
+          controller: widget.controller,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              final desktopInheritedNotifier =
+                  DesktopUpdaterInheritedNotifier.of(context);
+              final notifier = desktopInheritedNotifier?.notifier;
 
-                if (((notifier?.needUpdate ?? false) == false) ||
-                    (notifier?.skipUpdate ?? false)) {
-                  // Empty sliver empty to avoid error
-                  return const SliverToBoxAdapter();
-                } else {
-                  return const SliverAppBar.large(
-                    expandedHeight: 300,
-                    collapsedHeight: 92,
-                    pinned: false,
-                    flexibleSpace: Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: UpdateCard(),
-                    ),
-                  );
-                }
-              },
-            ),
+              if (((notifier?.needUpdate ?? false) == false) ||
+                  (notifier?.skipUpdate ?? false)) {
+                // Empty sliver empty to avoid error
+                return const SliverToBoxAdapter();
+              } else {
+                return SliverAppBar.large(
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  expandedHeight: 300,
+                  collapsedHeight: 92,
+                  pinned: false,
+                  flexibleSpace: const Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: UpdateCard(),
+                  ),
+                );
+              }
+            },
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                const SizedBox(
-                  height: 16,
-                ),
-                Center(child: widget.child),
-              ],
-            ),
+        ),
+        SliverList(
+          delegate: SliverChildListDelegate(
+            [
+              const SizedBox(
+                height: 16,
+              ),
+              Center(child: widget.child),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
