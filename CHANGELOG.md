@@ -1,3 +1,7 @@
+## 1.0.3
+
+* Fix mandotory skip issue
+
 ## 1.0.2
 
 * Lower macOS platform requirement to 10.14
