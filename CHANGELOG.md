@@ -1,3 +1,7 @@
+## 1.0.4
+
+* Add custom direct widget for theme colors
+
 ## 1.0.3
 
 * Fix mandotory skip issue

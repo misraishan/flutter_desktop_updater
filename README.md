@@ -94,6 +94,52 @@ Widget build(BuildContext context) {
 }
 ```
 
+You can use this directly as a card for custom purposes. While you cannot modify the scaffold background in `DesktopUpdateSliver` or `DesktopUpdateWidget`, you can adjust colors and use it anywhere as needed
+```
+Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.blue,
+        appBar: AppBar(
+        title: const Text("Plugin example app"),
+        ),
+        body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Center(
+            child: Column(
+                children: [
+                    Theme(
+                        data: ThemeData(
+                            colorScheme:
+                                ColorScheme.fromSeed(seedColor: Colors.blue).copyWith(
+                            onSurface: Theme.of(context).colorScheme.onSurface,
+                            onSurfaceVariant:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            primary: Theme.of(context).colorScheme.primary,
+                            surfaceContainerLowest:
+                                Theme.of(context).colorScheme.surfaceContainerLowest,
+                            surfaceContainerLow:
+                                Theme.of(context).colorScheme.surfaceContainerLow,
+                            surfaceContainerHighest:
+                                Theme.of(context).colorScheme.surfaceContainerHighest,
+                            ),
+                        ),
+                        child: DesktopUpdateDirectCard(
+                            controller: _desktopUpdaterController,
+                            child: const Text("This is a child widget"),
+                        ),
+                    ),
+                    const Text(
+                    "Running on: 1.0.0+1",
+                    ),
+                    Text("Running on: $_platformVersion\n"),
+                ],
+            ),
+        ),
+        ),
+    );
+}
+```
+
 # Creating app-archive.json
 ```
 {
