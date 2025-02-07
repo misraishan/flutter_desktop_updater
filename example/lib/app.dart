@@ -1,5 +1,6 @@
 import "package:desktop_updater/desktop_updater.dart";
 import "package:desktop_updater/updater_controller.dart";
+import "package:desktop_updater/widget/update_widget.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
