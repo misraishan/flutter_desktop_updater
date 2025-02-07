@@ -272,13 +272,14 @@ class _UpdateCardState extends State<UpdateCard> {
                                   const SizedBox(
                                     width: 8,
                                   ),
-                                  OutlinedButton.icon(
-                                    icon: const Icon(Icons.close),
-                                    label: const Text("Skip this version"),
-                                    onPressed: () {
-                                      notifier?.makeSkipUpdate();
-                                    },
-                                  ),
+                                  if ((notifier?.isMandatory ?? false) == false)
+                                    OutlinedButton.icon(
+                                      icon: const Icon(Icons.close),
+                                      label: const Text("Skip this version"),
+                                      onPressed: () {
+                                        notifier?.makeSkipUpdate();
+                                      },
+                                    ),
                                 ],
                               ),
                             // Release notes
